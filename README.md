@@ -1,29 +1,22 @@
 ## Data Spreadsheet Mendix Pluggable Widget
-A Mendix widget to build emails and email templates using ![Unlayer's Editor](https://github.com/unlayer/react-email-editor)
+A Mendix Pluggable Widget to build emails and email templates using [Unlayer's Editor](https://github.com/unlayer/react-email-editor). This will allow you to quickly build beautiful and complex emails, end-user oriented; reuse templates and designs; make sure they look ok in different devices and in dark-mode... All embedded in your Mendix application.
 
 <img alt="Mendix Pluggable Widget Data Spreadsheet Logo" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/logo.jpeg" width="65px"/>
 
-<!-- ## Features
-View and edit your excel files. Pluggable widget based on the [x-data-spreadsheet](https://github.com/myliang/x-spreadsheet) library that allows you to visualize and edit your excel data directly from your Mendix web app. Current features include:
+## Features
+Build emails and email templates in a friendly and easy manner, using drag and drop.
 
-*   View / Edit mode;
-
-*   Multiple sheets;
-
-*   Cell formulas available;
-
-*   Custom toolbar;
-
-*   Possibility to show download and/or save button(s);
-
-*   Possibility to add an After Save activity, such as a nanoflow to show a success message;
-
-*   Export settings fully customizable;
-
-*   Customize css. The spreadsheet is wrapped by the id below:
-
-    *   #gridctr -->
-
+*   Create and customize email templates
+    *   Add content (which may be kept dynamic by using Mendix Email Placeholders, such as {%Name%})
+    *   Create unique layouts with blocks
+    *   Change settings
+*   Load existing templates
+*   Preview emails (for desktop, tablet and mobile devices, using different resolutions)
+    *   Preview available for dark mode as well
+*   Save Design (JSON with template) and/or save HTML
+    *   Mendix action (such as call microflow) possible
+    *   You can then easily convert it into Mendix Email Templates
+    *   With custom logic, you can go back and forth between the email editor and the Mendix template
 
 <!-- ### Light
 ![Light Mode](https://github.com/joaodelopes/block-note-mendix/blob/main/images/lightmodedemo.png)
@@ -55,15 +48,8 @@ View and edit your excel files. Pluggable widget based on the [x-data-spreadshee
 <!-- - [Mendix demo scss (.scss)](https://github.com/joaodelopes/block-note-mendix/blob/main/demo/demo.scss) -->
 
 ## Issues, suggestions and feature requests
-
-<!-- *   Performance is a problem when handling large files. In part, this is a limitation of the SheetJs free version. The Pro version might be a solution.
-
-*   Strange behaviour with the spreadsheet's horizontal scrollbar when using Mozilla Firefox. This seems unrelated to this widget's logic as per this [Stack Overflow post](https://superuser.com/questions/1720362/firefox-scroll-bar-disappearing).
-
-*   Currently, spreadsheet styling can be exported but not imported. So, your file will always show unstyled. Library limitation with importing spreadsheets' styles, solving it is not easy / coming soon.
-
-*   We are working in improving performance and adding features to make this widget more flexible for different purposes. Feel free to suggest us new features. If you notice any issue, also let us know. -->
-
+This editor uses an iframe. Beware of this when creating templates/emails showing sensitive (company) data.
+The good new is that you don't need to put sensitive data in the template itself, as you can use Mendix Email Placeholders and then populate those in Mendix, before sending the email.
 
 ## About Stoneworx
 
