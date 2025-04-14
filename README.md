@@ -29,10 +29,11 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 ![View-only Mode](https://github.com/joaodelopes/block-note-mendix/blob/main/images/viewmodedemo.png) -->
 
 ## Usage
-<!-- 1. Add a dataview that fetches the .xlsx file you wish to display/edit.
-2. Inside the dataview, add the x-spreadsheet widget.
-3. Custumize it. Make it editable/view-only; Decide if you want to show the Save/Download button. Define a width margin if needed.
-4. In case you want to export (save/download), define the export options. -->
+1. In a database entity, make sure you have a String attribute to store the JSON configuration and another String attribute to store the HTML. This can be non-persistent.
+2. Fetch an object of this entity in a data view's data source (eg. microflow).
+3. Add the email editor widget inside the data view.
+4. Set the HTML body and JSON template attributes.
+5. Optionally, set an action to export the HTML and another to save the JSON template.
 
 <!-- ### General Settings
 ![Usage in Mendix Studio Pro (General)](https://github.com/joaodelopes/data-spreadsheet-mendix/blob/main/images/studiopro0.png)
@@ -49,7 +50,7 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 
 ## Issues, suggestions and feature requests
 This editor uses an iframe. Beware of this when creating templates/emails showing sensitive (company) data.
-The good new is that you don't need to put sensitive data in the template itself, as you can use Mendix Email Placeholders and then populate those in Mendix, before sending the email.
+The good news is that you don't need to put sensitive data in the template itself, as you can use Mendix Email Placeholders and then populate those in Mendix, before sending the email.
 
 ## About Stoneworx
 
