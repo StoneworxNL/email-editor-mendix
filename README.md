@@ -1,7 +1,7 @@
 ## Data Spreadsheet Mendix Pluggable Widget
 A Mendix Pluggable Widget to build emails and email templates using [Unlayer's Editor](https://github.com/unlayer/react-email-editor). This will allow you to quickly build beautiful and complex emails, end-user oriented; reuse templates and designs; make sure they look ok in different devices and in dark-mode... All embedded in your Mendix application.
 
-<img alt="Mendix Pluggable Widget Data Spreadsheet Logo" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/logo.jpeg" width="65px"/>
+<img alt="Mendix Pluggable Widget Email Editor Logo" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/logo.jpeg" width="65px"/>
 
 ## Features
 Build emails and email templates in a friendly and easy manner, using drag and drop.
@@ -18,16 +18,6 @@ Build emails and email templates in a friendly and easy manner, using drag and d
     *   You can then easily convert it into Mendix Email Templates
     *   With custom logic, you can go back and forth between the email editor and the Mendix template
 
-<!-- ### Light
-![Light Mode](https://github.com/joaodelopes/block-note-mendix/blob/main/images/lightmodedemo.png)
-![Light Mode (full-page)](https://github.com/joaodelopes/block-note-mendix/blob/main/images/fullscreendemo.png)
-
-### Dark
-![Dark Mode](https://github.com/joaodelopes/block-note-mendix/blob/main/images/darkmodedemo.png)
-
-### View-only
-![View-only Mode](https://github.com/joaodelopes/block-note-mendix/blob/main/images/viewmodedemo.png) -->
-
 ## Usage
 1. In a database entity, make sure you have a String attribute to store the JSON configuration and another String attribute to store the HTML. This can be non-persistent.
 2. Fetch an object of this entity in a data view's data source (eg. microflow).
@@ -35,12 +25,22 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 4. Set the HTML body and JSON template attributes.
 5. Optionally, set an action to export the HTML and another to save the JSON template.
 
-<!-- ### General Settings
-![Usage in Mendix Studio Pro (General)](https://github.com/joaodelopes/data-spreadsheet-mendix/blob/main/images/studiopro0.png)
+### Configuration Screenshots
 
-### Export Settings
-![Usage in Mendix Studio Pro (Export Settings)](https://github.com/joaodelopes/data-spreadsheet-mendix/blob/main/images/studiopro1.png) -->
+#### Page Setup
+![Studio Pro Screenshot](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/studiopro.png)
 
+#### Domain Model (Demo)
+<img alt="Domain Model Demo" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/domainmodel.png" width="400px"/>
+
+#### Widget's General Settings
+<img alt="Widget's General Settings" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/Data.png" width="500px"/>
+
+#### Widget's Action Settings
+<img alt="Widget's Auto-Draw Settings" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/actions.png" width="500px"/>
+
+#### Export Microflow Example
+<img alt="Export Microflow Example" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/export.png" width="500px"/>
 
 ## Demo project
 <!-- - [Mendix app running on the cloud](https://x-spreadsheet-demo-sandbox.mxapps.io/index.html)
@@ -49,8 +49,8 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 <!-- - [Mendix demo scss (.scss)](https://github.com/joaodelopes/block-note-mendix/blob/main/demo/demo.scss) -->
 
 ## Issues, suggestions and feature requests
-This editor uses an iframe. Beware of this when creating templates/emails showing sensitive (company) data.
-The good news is that you don't need to put sensitive data in the template itself, as you can use Mendix Email Placeholders and then populate those in Mendix, before sending the email.
+This editor uses an iframe. Beware of this when creating templates/emails containing sensitive (company) data.
+The good news is that you don't need to place sensitive data in the template itself, as you can use Mendix Email Placeholders and then populate those in Mendix, before sending the email.
 
 ## About Stoneworx
 
