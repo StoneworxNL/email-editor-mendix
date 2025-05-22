@@ -48,6 +48,9 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 - [Marketplace widget](https://marketplace.mendix.com/link/component/237438) -->
 <!-- - [Mendix demo scss (.scss)](https://github.com/joaodelopes/block-note-mendix/blob/main/demo/demo.scss) -->
 
+Below you can see an example of an email sent through Mendix (being received locally with fakeSMTP):
+![Sent Email Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/example.png)
+
 ## Issues, suggestions and feature requests
 This editor uses an iframe. Beware of this when creating templates/emails containing sensitive (company) data.
 The good news is that you don't need to place sensitive data in the template itself, as you can use Mendix Email Placeholders and then populate those in Mendix, before sending the email.
