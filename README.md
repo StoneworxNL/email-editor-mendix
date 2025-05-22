@@ -49,6 +49,7 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 <!-- - [Mendix demo scss (.scss)](https://github.com/joaodelopes/block-note-mendix/blob/main/demo/demo.scss) -->
 
 Below you can see an example of an email sent through Mendix (being received locally with fakeSMTP):
+
 ![Sent Email Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/example.png)
 
 ## Issues, suggestions and feature requests
