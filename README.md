@@ -31,7 +31,7 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 ![Studio Pro Screenshot](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/studiopro.png)
 
 #### Domain Model (Demo)
-<img alt="Domain Model Demo" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/domainmodel.png" width="400px"/>
+<img alt="Domain Model Demo" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/domainmodel.png" width="150px"/>
 
 #### Widget's General Settings
 <img alt="Widget's General Settings" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/Data.png" width="500px"/>
@@ -40,7 +40,7 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 <img alt="Widget's Auto-Draw Settings" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/actions.png" width="500px"/>
 
 #### Export Microflow Example
-<img alt="Export Microflow Example" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/export.png" width="500px"/>
+![Export Microflow Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/export.png)
 
 ## Demo project
 <!-- - [Mendix app running on the cloud](https://x-spreadsheet-demo-sandbox.mxapps.io/index.html)
