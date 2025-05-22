@@ -1,4 +1,4 @@
-## Data Spreadsheet Mendix Pluggable Widget
+## Email Builder Mendix Pluggable Widget
 A Mendix Pluggable Widget to build emails and email templates using [Unlayer's Editor](https://github.com/unlayer/react-email-editor). This will allow you to quickly build beautiful and complex emails, end-user oriented; reuse templates and designs; make sure they look ok in different devices and in dark-mode... All embedded in your Mendix application.
 
 <img alt="Mendix Pluggable Widget Email Editor Logo" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/logo.jpeg" width="65px"/>
@@ -42,7 +42,7 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 #### Export Microflow Example
 ![Export Microflow Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/export.png)
 
-## Demo project
+## Demo Project
 <!-- - [Mendix app running on the cloud](https://x-spreadsheet-demo-sandbox.mxapps.io/index.html)
 - [Mendix demo module (.mpk)](https://github.com/joaodelopes/xspreadsheet/tree/main/demo)
 - [Marketplace widget](https://marketplace.mendix.com/link/component/237438) -->
@@ -52,7 +52,7 @@ Below you can see an example of an email sent through Mendix (being received loc
 
 ![Sent Email Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/example.png)
 
-## Issues, suggestions and feature requests
+## Issues, Suggestions and Feature Requests
 This editor uses an iframe. Beware of this when creating templates/emails containing sensitive (company) data.
 The good news is that you don't need to place sensitive data in the template itself, as you can use Mendix Email Placeholders and then populate those in Mendix, before sending the email.
 
