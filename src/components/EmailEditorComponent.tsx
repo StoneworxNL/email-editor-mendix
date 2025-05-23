@@ -11,7 +11,7 @@ export interface EmailEditorSampleProps {
     saveTemplateAction?: ActionValue;
 }
 
-export function EmailEditorReact({
+export function EmailEditorComponent({
     HTMLBody,
     JSONTemplate,
     exportHTMLAction /*, saveTemplateAction*/
