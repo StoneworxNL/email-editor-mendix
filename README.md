@@ -48,6 +48,8 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 - [Marketplace widget](https://marketplace.mendix.com/link/component/237438) -->
 <!-- - [Mendix demo scss (.scss)](https://github.com/joaodelopes/block-note-mendix/blob/main/demo/demo.scss) -->
 
+## Demo Images
+
 ### Editor Embedded in Mendix Web App
 
 ![Editor Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/demo.png)
