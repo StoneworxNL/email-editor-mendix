@@ -43,12 +43,9 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 ![Export Microflow Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/export.png)
 
 ## Demo Project
-<!-- - [Mendix app running on the cloud](https://x-spreadsheet-demo-sandbox.mxapps.io/index.html)
-- [Mendix demo module (.mpk)](https://github.com/joaodelopes/xspreadsheet/tree/main/demo)
-- [Marketplace widget](https://marketplace.mendix.com/link/component/237438) -->
-<!-- - [Mendix demo scss (.scss)](https://github.com/joaodelopes/block-note-mendix/blob/main/demo/demo.scss) -->
-
-## Demo Images
+- [Mendix app running on the cloud](https://x-spreadsheet-demo-sandbox.mxapps.io/index.html)
+<!-- - [Mendix demo module (.mpk)](https://github.com/joaodelopes/email-editor-mendix/tree/main/demo) -->
+<!-- - [Marketplace widget](https://marketplace.mendix.com/link/component/237438) -->
 
 ### Editor Embedded in Mendix Web App
 
@@ -65,11 +62,13 @@ It is possible to preview the email in Web, Tablet and Mobile Phone versions. It
 ![Preview Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/preview.png)
 
 ### Email Sent (Example)
+
 After creating the template, we can use custom logic to fill in placeholders (if applicable), as well as send the email. For the image below, we used FakeSMTP to receive a test email.
 
 ![Sent Email Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/example.png)
 
 ## Issues, Suggestions and Feature Requests
+
 This editor uses an iframe. Beware of this when creating templates/emails containing sensitive (company) data.
 The good news is that you don't need to place sensitive data in the template itself, as you can use Mendix Email Placeholders and then populate those in Mendix, before sending the email.
 
