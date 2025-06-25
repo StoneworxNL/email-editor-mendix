@@ -50,16 +50,19 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 
 Below you can see an example of an email sent through Mendix (being received locally with fakeSMTP):
 
+![Editor Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/demo.png)
+![Editor Gif Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/demo.gif)
+![Preview Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/preview.png)
 ![Sent Email Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/example.png)
 
 ## Issues, Suggestions and Feature Requests
 This editor uses an iframe. Beware of this when creating templates/emails containing sensitive (company) data.
 The good news is that you don't need to place sensitive data in the template itself, as you can use Mendix Email Placeholders and then populate those in Mendix, before sending the email.
 
-## About Stoneworx
+<!-- ## About Stoneworx
 
 <img alt="From https://www.stoneworx.nl/o" src="https://cdn.prod.website-files.com/66991b9fc069c88aec093fd1/66b242753e65840128c97ab9_imagehero-p-800.png" width="50px"/>
 
 We started our company as friends and will always remain a club of people that likes doing business in a friendly matter. A group of entrepreneurial, smart and highly experienced Mendix professionals.  
 
-On a daily basis, we create software applications that simplify our clients’ business processes by using the Mendix low code platform. It is our mission is to turn complex ideas into simple solutions for medium to corporate-sized businesses, in any industry.
+On a daily basis, we create software applications that simplify our clients’ business processes by using the Mendix low code platform. It is our mission is to turn complex ideas into simple solutions for medium to corporate-sized businesses, in any industry. -->

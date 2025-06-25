@@ -3,7 +3,7 @@
   "widgetName": "ReactEmailEditor",
   "version": "1.0.0",
   "description": "React Email Editor based on Unlayer's wrapper component available at https://github.com/unlayer/react-email-editor",
-  "copyright": "© Mendix Technology BV 2022. All rights reserved.",
+  "copyright": "© JL 2025",
   "author": "Stoneworx",
   "engines": {
     "node": ">=16"
