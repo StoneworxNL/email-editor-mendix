@@ -1,25 +1,34 @@
-<?xml version="1.0" encoding="utf-8"?>
-<widget id="stoneworx.reactemaileditor.ReactEmailEditor" pluginWidget="true" needsEntityContext="true" offlineCapable="true"
-        supportedPlatform="Web"
-        xmlns="http://www.mendix.com/widget/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.mendix.com/widget/1.0/ ../node_modules/mendix/custom_widget.xsd">
+<?xml version="1.0" encoding="utf-8" ?>
+<widget
+    id="stoneworx.reactemaileditor.ReactEmailEditor"
+    pluginWidget="true"
+    needsEntityContext="true"
+    offlineCapable="true"
+    supportedPlatform="Web"
+    xmlns="http://www.mendix.com/widget/1.0/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.mendix.com/widget/1.0/ ../node_modules/mendix/custom_widget.xsd"
+>
     <name>React Email Editor</name>
-    <description>React Email Editor based on Unlayer's wrapper component available at https://github.com/unlayer/react-email-editor.</description>
-    <icon/>
+    <description>
+        React Email Editor based on Unlayer's wrapper component available at
+        https://github.com/unlayer/react-email-editor.
+    </description>
+    <icon />
     <properties>
         <propertyGroup caption="Data">
             <property key="HTMLBody" type="attribute">
                 <caption>HTML Body</caption>
                 <description>String attribute to get/save the email's resulting HTML body.</description>
                 <attributeTypes>
-                    <attributeType name="String"/>
+                    <attributeType name="String" />
                 </attributeTypes>
             </property>
-            <property key="JSONTemplate" type="attribute" >
+            <property key="JSONTemplate" type="attribute">
                 <caption>JSON Template (String)</caption>
                 <description>JSON template (as a string), either to pre-load, or save it afterwards.</description>
                 <attributeTypes>
-                    <attributeType name="String"/>
+                    <attributeType name="String" />
                 </attributeTypes>
             </property>
         </propertyGroup>

@@ -64,13 +64,26 @@ export function EmailEditorComponent({
                 )}
 
                 {saveTemplateAction && (
-                    <button className="btn mx-button btn-default spacing-outer-left-medium" onClick={() => exportAction(saveTemplateAction)}>
+                    <button
+                        className="btn mx-button btn-default spacing-outer-left-medium"
+                        onClick={() => exportAction(saveTemplateAction)}
+                    >
                         Save Template
                     </button>
                 )}
             </div>
 
-            <EmailEditor ref={emailEditorRef} onReady={onReady} />
+            <EmailEditor
+                ref={emailEditorRef}
+                onReady={onReady}
+                minHeight={1000}
+                // projectId={projectId}
+                options={{
+                    appearance: {
+                        theme: "modern_light"
+                    }
+                }}
+            />
         </div>
     );
 }
