@@ -31,6 +31,11 @@
                     <attributeType name="String" />
                 </attributeTypes>
             </property>
+            <!-- <property key="minHeight" type="expression">
+                <caption>Min. minHeight</caption>
+                <description />
+                <returnType type="String" />
+            </property> -->
         </propertyGroup>
         <propertyGroup caption="Actions">
             <property key="exportHTMLAction" type="action">
