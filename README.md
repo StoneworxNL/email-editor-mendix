@@ -5,7 +5,7 @@ A Mendix Pluggable Widget to build emails and email templates using
 complex emails, end-user oriented; reuse templates and designs; make sure they look ok in different devices and in
 dark-mode... All embedded in your Mendix application.
 
-<img alt="Mendix Pluggable Widget Email Editor Logo" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/logo.jpeg" width="65px"/>
+<img alt="Mendix Pluggable Widget Email Editor Logo" src="https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/logo.jpeg" width="65px"/>
 
 ## Features
 
@@ -36,23 +36,23 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 
 #### Page Setup
 
-![Studio Pro Screenshot](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/studiopro.png)
+![Studio Pro Screenshot](https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/studiopro.png)
 
 #### Domain Model (Demo)
 
-<img alt="Domain Model Demo" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/domainmodel.png" width="150px"/>
+<img alt="Domain Model Demo" src="https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/domainmodel.png" width="150px"/>
 
 #### Widget's General Settings
 
-<img alt="Widget's General Settings" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/Data.png" width="500px"/>
+<img alt="Widget's General Settings" src="https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/Data.png" width="500px"/>
 
 #### Widget's Action Settings
 
-<img alt="Widget's Auto-Draw Settings" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/actions.png" width="500px"/>
+<img alt="Widget's Auto-Draw Settings" src="https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/actions.png" width="500px"/>
 
 #### Export Microflow Example
 
-![Export Microflow Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/export.png)
+![Export Microflow Example](https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/export.png)
 
 ## Demo Project
 
@@ -62,25 +62,25 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 
 ### Editor Embedded in Mendix Web App
 
-![Editor Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/demo.png)
+![Editor Example](https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/demo.png)
 
 ### Example of Editing Email Template
 
-![Editor Gif Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/demogif.gif)
+![Editor Gif Example](https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/demogif.gif)
 
 ### Preview
 
 It is possible to preview the email in Web, Tablet and Mobile Phone versions. It is also possible to select different
 devices / screen sizes.
 
-![Preview Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/preview.png)
+![Preview Example](https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/preview.png)
 
 ### Email Sent (Example)
 
 After creating the template, we can use custom logic to fill in placeholders (if applicable), as well as send the email.
 For the image below, we used FakeSMTP to receive a test email.
 
-![Sent Email Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/example.png)
+![Sent Email Example](https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/example.png)
 
 ## Issues, Suggestions and Feature Requests
 
