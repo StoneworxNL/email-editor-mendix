@@ -1,4 +1,4 @@
-import { ReactElement, createElement /*useState,*/ } from "react";
+import { ReactElement, createElement } from "react";
 import { ActionValue, EditableValue } from "mendix";
 import { EditorRef } from "react-email-editor";
 
@@ -10,7 +10,7 @@ export interface ToolbarProps {
     emailRef: React.RefObject<EditorRef>;
 }
 
-export function TopToolbar({
+export function Toolbar({
     HTMLBody,
     JSONTemplate,
     exportHTMLAction,

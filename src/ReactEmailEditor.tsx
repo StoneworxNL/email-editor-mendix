@@ -1,5 +1,5 @@
 import { ReactElement, createElement } from "react";
-import { EmailEditorComponent } from "./components/EmailEditorComponent";
+import { EditorWrapper } from "./components/EditorWrapper";
 
 import { ReactEmailEditorContainerProps } from "../typings/ReactEmailEditorProps";
 
@@ -12,7 +12,7 @@ export function ReactEmailEditor({
     saveTemplateAction
 }: ReactEmailEditorContainerProps): ReactElement {
     return (
-        <EmailEditorComponent
+        <EditorWrapper
             HTMLBody={HTMLBody}
             JSONTemplate={JSONTemplate}
             exportHTMLAction={exportHTMLAction}

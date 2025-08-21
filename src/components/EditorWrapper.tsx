@@ -1,11 +1,11 @@
 // import { ReactElement, createElement } from "react";
-import { ReactElement, useRef, createElement, /*useState,*/ useEffect } from "react";
+import { ReactElement, useRef, createElement, useEffect } from "react";
 import { ActionValue, EditableValue } from "mendix";
 import EmailEditor, { Editor, EditorRef, EmailEditorProps } from "react-email-editor";
-import { TopToolbar } from "./TopToolbar";
+import { Toolbar } from "./Toolbar";
 // import "../ui/ReactEmailEditor.css";
 
-export interface EmailEditorSampleProps {
+export interface Props {
     HTMLBody?: EditableValue<string>;
     JSONTemplate?: EditableValue<string>;
     exportHTMLAction?: ActionValue;
@@ -19,12 +19,7 @@ function loadJSONTemplate(JSONTemplate?: EditableValue<string>, unlayer?: Editor
     }
 }
 
-export function EmailEditorComponent({
-    HTMLBody,
-    JSONTemplate,
-    exportHTMLAction,
-    saveTemplateAction
-}: EmailEditorSampleProps): ReactElement {
+export function EditorWrapper({ HTMLBody, JSONTemplate, exportHTMLAction, saveTemplateAction }: Props): ReactElement {
     const emailEditorRef = useRef<EditorRef>(null);
 
     useEffect(() => {
@@ -38,7 +33,7 @@ export function EmailEditorComponent({
 
     return (
         <div className="react-email-editor-div">
-            <TopToolbar
+            <Toolbar
                 HTMLBody={HTMLBody}
                 JSONTemplate={JSONTemplate}
                 exportHTMLAction={exportHTMLAction}

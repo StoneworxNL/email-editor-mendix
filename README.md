@@ -1,25 +1,32 @@
 ## Email Builder Mendix Pluggable Widget
-A Mendix Pluggable Widget to build emails and email templates using [Unlayer's Editor](https://github.com/unlayer/react-email-editor). This will allow you to quickly build beautiful and complex emails, end-user oriented; reuse templates and designs; make sure they look ok in different devices and in dark-mode... All embedded in your Mendix application.
+
+A Mendix Pluggable Widget to build emails and email templates using
+[Unlayer's Editor](https://github.com/unlayer/react-email-editor). This will allow you to quickly build beautiful and
+complex emails, end-user oriented; reuse templates and designs; make sure they look ok in different devices and in
+dark-mode... All embedded in your Mendix application.
 
 <img alt="Mendix Pluggable Widget Email Editor Logo" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/logo.jpeg" width="65px"/>
 
 ## Features
+
 Build emails and email templates in a friendly and easy manner, using drag and drop.
 
-*   Create and customize email templates
-    *   Add content (which may be kept dynamic by using Mendix Email Placeholders, such as {%Name%})
-    *   Create unique layouts with blocks
-    *   Change settings
-*   Load existing templates
-*   Preview emails (for desktop, tablet and mobile devices, using different resolutions)
-    *   Preview available for dark mode as well
-*   Save Design (JSON with template) and/or save HTML
-    *   Mendix action (such as call microflow) possible
-    *   You can then easily convert it into Mendix Email Templates
-    *   With custom logic, you can go back and forth between the email editor and the Mendix template
+-   Create and customize email templates
+    -   Add content (which may be kept dynamic by using Mendix Email Placeholders, such as {%Name%})
+    -   Create unique layouts with blocks
+    -   Change settings
+-   Load existing templates
+-   Preview emails (for desktop, tablet and mobile devices, using different resolutions)
+    -   Preview available for dark mode as well
+-   Save Design (JSON with template) and/or save HTML
+    -   Mendix action (such as call microflow) possible
+    -   You can then easily convert it into Mendix Email Templates
+    -   With custom logic, you can go back and forth between the email editor and the Mendix template
 
 ## Usage
-1. In a database entity, make sure you have a String attribute to store the JSON configuration and another String attribute to store the HTML. This can be non-persistent.
+
+1. In a database entity, make sure you have a String attribute to store the JSON configuration and another String
+   attribute to store the HTML. This can be non-persistent.
 2. Fetch an object of this entity in a data view's data source (eg. microflow).
 3. Add the email editor widget inside the data view.
 4. Set the HTML body and JSON template attributes.
@@ -28,24 +35,30 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 ### Configuration Screenshots
 
 #### Page Setup
+
 ![Studio Pro Screenshot](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/studiopro.png)
 
 #### Domain Model (Demo)
+
 <img alt="Domain Model Demo" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/domainmodel.png" width="150px"/>
 
 #### Widget's General Settings
+
 <img alt="Widget's General Settings" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/Data.png" width="500px"/>
 
 #### Widget's Action Settings
+
 <img alt="Widget's Auto-Draw Settings" src="https://github.com/joaodelopes/email-editor-mendix/blob/main/images/actions.png" width="500px"/>
 
 #### Export Microflow Example
+
 ![Export Microflow Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/export.png)
 
 ## Demo Project
-- [Mendix app running on the cloud](https://x-spreadsheet-demo-sandbox.mxapps.io/index.html)
-<!-- - [Mendix demo module (.mpk)](https://github.com/joaodelopes/email-editor-mendix/tree/main/demo) -->
-<!-- - [Marketplace widget](https://marketplace.mendix.com/link/component/237438) -->
+
+-   [Mendix app running on the cloud](https://x-spreadsheet-demo-sandbox.mxapps.io/index.html)
+    <!-- - [Mendix demo module (.mpk)](https://github.com/joaodelopes/email-editor-mendix/tree/main/demo) -->
+    <!-- - [Marketplace widget](https://marketplace.mendix.com/link/component/237438) -->
 
 ### Editor Embedded in Mendix Web App
 
@@ -57,20 +70,23 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 
 ### Preview
 
-It is possible to preview the email in Web, Tablet and Mobile Phone versions. It is also possible to select different devices / screen sizes.
+It is possible to preview the email in Web, Tablet and Mobile Phone versions. It is also possible to select different
+devices / screen sizes.
 
 ![Preview Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/preview.png)
 
 ### Email Sent (Example)
 
-After creating the template, we can use custom logic to fill in placeholders (if applicable), as well as send the email. For the image below, we used FakeSMTP to receive a test email.
+After creating the template, we can use custom logic to fill in placeholders (if applicable), as well as send the email.
+For the image below, we used FakeSMTP to receive a test email.
 
 ![Sent Email Example](https://github.com/joaodelopes/email-editor-mendix/blob/main/images/example.png)
 
 ## Issues, Suggestions and Feature Requests
 
-This editor uses an iframe. Beware of this when creating templates/emails containing sensitive (company) data.
-The good news is that you don't need to place sensitive data in the template itself, as you can use Mendix Email Placeholders and then populate those in Mendix, before sending the email.
+This editor uses an iframe. Beware of this when creating templates/emails containing sensitive (company) data. The good
+news is that you don't need to place sensitive data in the template itself, as you can use Mendix Email Placeholders and
+then populate those in Mendix, before sending the email.
 
 <!-- ## About Stoneworx
 
