@@ -56,8 +56,8 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 
 ## Demo Project
 
--   [Mendix app running on the cloud](https://x-spreadsheet-demo-sandbox.mxapps.io/index.html)
-    <!-- - [Mendix demo module (.mpk)](https://github.com/joaodelopes/email-editor-mendix/tree/main/demo) -->
+-   [Mendix app running on the cloud](https://email-editor-mendix-sandbox.mxapps.io/index.html)
+-   [Mendix demo module (.mpk)](https://github.com/StoneworxNL/email-editor-mendix/tree/main/demo) 
     <!-- - [Marketplace widget](https://marketplace.mendix.com/link/component/237438) -->
 
 ### Editor Embedded in Mendix Web App
