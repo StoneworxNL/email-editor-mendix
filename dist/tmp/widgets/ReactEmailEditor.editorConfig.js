@@ -1,8 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
 function getProperties(_values, defaultProperties /* , target: Platform*/) {
   // Do the values manipulation here to control the visibility of properties in Studio and Studio Pro conditionally.
   /* Example

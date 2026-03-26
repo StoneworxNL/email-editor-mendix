@@ -1,4 +1,4 @@
-import { ReactElement, createElement } from "react";
+import React, { ReactElement } from "react";
 import { ActionValue, EditableValue } from "mendix";
 import { EditorRef } from "react-email-editor";
 
@@ -7,7 +7,7 @@ export interface ToolbarProps {
     JSONTemplate?: EditableValue<string>;
     exportHTMLAction?: ActionValue;
     saveTemplateAction?: ActionValue;
-    emailRef: React.RefObject<EditorRef>;
+    emailRef: React.RefObject<EditorRef | null>;
 }
 
 export function Toolbar({
@@ -19,7 +19,7 @@ export function Toolbar({
 }: ToolbarProps): ReactElement {
     const exportAction = (action: ActionValue) => {
         const unlayer = emailRef.current?.editor;
-        unlayer?.exportHtml(data => {
+        unlayer?.exportHtml((data: any) => {
             const { design, html } = data;
 
             // ActionValue is used to represent actions, like the On click property of an action button. For any action except Do nothing, your component will receive a value adhering to the following interface. For Do nothing it will receive undefined. The ActionValue prop appears like this:

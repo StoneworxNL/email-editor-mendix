@@ -1,9 +1,7 @@
-// import { ReactElement, createElement } from "react";
-import { ReactElement, useRef, createElement, useEffect } from "react";
+import React, { ReactElement, useRef, useEffect } from "react";
 import { ActionValue, EditableValue } from "mendix";
 import EmailEditor, { Editor, EditorRef, EmailEditorProps } from "react-email-editor";
 import { Toolbar } from "./Toolbar";
-// import "../ui/ReactEmailEditor.css";
 
 export interface Props {
     HTMLBody?: EditableValue<string>;
