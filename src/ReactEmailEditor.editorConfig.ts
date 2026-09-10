@@ -103,13 +103,24 @@ export function getProperties(
     _values: ReactEmailEditorPreviewProps,
     defaultProperties: Properties /* , target: Platform*/
 ): Properties {
-    // Do the values manipulation here to control the visibility of properties in Studio and Studio Pro conditionally.
-    /* Example
-    if (values.myProperty === "custom") {
-        delete defaultProperties.properties.myOtherProperty;
+    if (!_values.isShowExportHtml) {
+        hideProperty(defaultProperties, "exportHTMLAction");
     }
-    */
+    if (!_values.isShowSaveTemplate) {
+        hideProperty(defaultProperties, "saveTemplateAction");
+    }
     return defaultProperties;
+}
+
+function hideProperty(propertyGroups: Properties, key: string): void {
+    propertyGroups.forEach(group => {
+        if (group.properties) {
+            group.properties = group.properties.filter(p => p.key !== key);
+        }
+        if (group.propertyGroups) {
+            hideProperty(group.propertyGroups, key);
+        }
+    });
 }
 
 // export function check(_values: ReactEmailEditorPreviewProps): Problem[] {

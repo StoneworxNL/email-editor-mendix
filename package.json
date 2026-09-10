@@ -3,7 +3,7 @@
   "widgetName": "ReactEmailEditor",
   "version": "1.0.1",
   "description": "React Email Editor based on Unlayer's wrapper component available at https://github.com/unlayer/react-email-editor",
-  "copyright": "© JL 2025",
+  "copyright": "\u00a9 JL 2025",
   "author": "Stoneworx",
   "engines": {
     "node": ">=16"
@@ -25,26 +25,37 @@
     "release": "pluggable-widgets-tools release:web"
   },
   "devDependencies": {
-    "@mendix/pluggable-widgets-tools": "^11.8.1",
+    "@mendix/pluggable-widgets-tools": "10.24.0",
     "@types/big.js": "^6.2.2"
   },
   "dependencies": {
     "classnames": "^2.5.1",
-    "mendix": "^11.8.0",
-    "react-email-editor": "^1.7.11"
+    "mendix": "^10.24.0",
+    "react-email-editor": "1.7.11"
   },
   "resolutions": {
-    "react": "19.0.0",
-    "react-native": "0.78.2",
-    "react-dom": "19.0.0",
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0"
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-native": "0.72.7",
+    "@types/react": "18.2.0",
+    "@types/react-dom": "18.2.0",
+    "rollup": "3.30.0"
   },
   "overrides": {
-    "react": "19.0.0",
-    "react-native": "0.78.2",
-    "react-dom": "19.0.0",
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0"
-  }
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-native": "0.72.7",
+    "@types/react": "18.2.0",
+    "@types/react-dom": "18.2.0",
+    "rollup": "3.30.0"
+  },
+  "comment_mendix10": [
+    "Aligned to Mendix 10.24 (React 18), matching the app this widget ships in.",
+    "See custom/react-email-editor/README.md for the full compatibility matrix;",
+    "the same five constraints apply to both widgets. In short: the toolchain",
+    "major and React must match the target Studio Pro, rollup must be pinned so",
+    "the plugin peers do not hoist v4 over the v3 the config expects, and react",
+    "must not appear in dependencies or the toolchain prompts to migrate and",
+    "silently builds nothing."
+  ]
 }

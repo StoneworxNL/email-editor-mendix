@@ -4,17 +4,18 @@
  * @author Mendix Widgets Framework Team
  */
 import { CSSProperties } from "react";
-import { ActionValue, EditableValue } from "mendix";
+import { ActionValue, EditableValue, Option } from "mendix";
 
 export interface ReactEmailEditorContainerProps {
     name: string;
     class: string;
     style?: CSSProperties;
     tabIndex?: number;
-    HTMLBody: EditableValue<string>;
     JSONTemplate: EditableValue<string>;
-    exportHTMLAction?: ActionValue;
-    saveTemplateAction?: ActionValue;
+    isShowExportHtml: boolean;
+    isShowSaveTemplate: boolean;
+    exportHTMLAction?: ActionValue<{ html__: Option<string>; json__: Option<string> }>;
+    saveTemplateAction?: ActionValue<{ html__: Option<string>; json__: Option<string> }>;
 }
 
 export interface ReactEmailEditorPreviewProps {
@@ -28,8 +29,9 @@ export interface ReactEmailEditorPreviewProps {
     readOnly: boolean;
     renderMode: "design" | "xray" | "structure";
     translate: (text: string) => string;
-    HTMLBody: string;
     JSONTemplate: string;
+    isShowExportHtml: boolean;
+    isShowSaveTemplate: boolean;
     exportHTMLAction: {} | null;
     saveTemplateAction: {} | null;
 }

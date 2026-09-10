@@ -17,13 +17,6 @@
     <icon />
     <properties>
         <propertyGroup caption="Data">
-            <property key="HTMLBody" type="attribute">
-                <caption>HTML Body</caption>
-                <description>String attribute to get/save the email's resulting HTML body.</description>
-                <attributeTypes>
-                    <attributeType name="String" />
-                </attributeTypes>
-            </property>
             <property key="JSONTemplate" type="attribute">
                 <caption>JSON Template (String)</caption>
                 <description>JSON template (as a string), either to pre-load, or save it afterwards.</description>
@@ -31,20 +24,31 @@
                     <attributeType name="String" />
                 </attributeTypes>
             </property>
-            <!-- <property key="minHeight" type="expression">
-                <caption>Min. minHeight</caption>
-                <description />
-                <returnType type="String" />
-            </property> -->
         </propertyGroup>
         <propertyGroup caption="Actions">
+            <property key="isShowExportHtml" type="boolean" defaultValue="true">
+                <caption>Show Export HTML Button</caption>
+                <description>Show or hide the Export HTML button in the toolbar.</description>
+            </property>
+            <property key="isShowSaveTemplate" type="boolean" defaultValue="true">
+                <caption>Show Save Template Button</caption>
+                <description>Show or hide the Save Template button in the toolbar.</description>
+            </property>
             <property key="exportHTMLAction" type="action">
                 <caption>Export HTML</caption>
                 <description>Action to handle the built HTML email body.</description>
+                <actionVariables>
+                    <actionVariable key="html__" type="String" caption="HTML of Email Template" />
+                    <actionVariable key="json__" type="String" caption="JSON Design of Email Template" />
+                </actionVariables>
             </property>
             <property key="saveTemplateAction" type="action">
                 <caption>Save JSON Template</caption>
                 <description>Action to Save JSON template as a string.</description>
+                <actionVariables>
+                    <actionVariable key="html__" type="String" caption="HTML of Email Template" />
+                    <actionVariable key="json__" type="String" caption="JSON Design of Email Template" />
+                </actionVariables>
             </property>
         </propertyGroup>
     </properties>

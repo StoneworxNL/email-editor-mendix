@@ -6,17 +6,19 @@ import { ReactEmailEditorContainerProps } from "../typings/ReactEmailEditorProps
 import "./ui/ReactEmailEditor.css";
 
 export function ReactEmailEditor({
-    HTMLBody,
     JSONTemplate,
     exportHTMLAction,
-    saveTemplateAction
+    saveTemplateAction,
+    isShowExportHtml,
+    isShowSaveTemplate
 }: ReactEmailEditorContainerProps): ReactElement {
     return (
         <EditorWrapper
-            HTMLBody={HTMLBody}
             JSONTemplate={JSONTemplate}
             exportHTMLAction={exportHTMLAction}
             saveTemplateAction={saveTemplateAction}
+            isShowExportHtml={isShowExportHtml}
+            isShowSaveTemplate={isShowSaveTemplate}
         />
     );
 }

@@ -4,10 +4,11 @@ import EmailEditor, { Editor, EditorRef, EmailEditorProps } from "react-email-ed
 import { Toolbar } from "./Toolbar";
 
 export interface Props {
-    HTMLBody?: EditableValue<string>;
     JSONTemplate?: EditableValue<string>;
-    exportHTMLAction?: ActionValue;
-    saveTemplateAction?: ActionValue;
+    exportHTMLAction?: ActionValue<{ html__: string; json__: string }>;
+    saveTemplateAction?: ActionValue<{ html__: string; json__: string }>;
+    isShowExportHtml: boolean;
+    isShowSaveTemplate: boolean;
 }
 
 function loadJSONTemplate(JSONTemplate?: EditableValue<string>, unlayer?: Editor | null | undefined): void {
@@ -17,7 +18,13 @@ function loadJSONTemplate(JSONTemplate?: EditableValue<string>, unlayer?: Editor
     }
 }
 
-export function EditorWrapper({ HTMLBody, JSONTemplate, exportHTMLAction, saveTemplateAction }: Props): ReactElement {
+export function EditorWrapper({
+    JSONTemplate,
+    exportHTMLAction,
+    saveTemplateAction,
+    isShowExportHtml,
+    isShowSaveTemplate
+}: Props): ReactElement {
     const emailEditorRef = useRef<EditorRef>(null);
 
     useEffect(() => {
@@ -32,11 +39,11 @@ export function EditorWrapper({ HTMLBody, JSONTemplate, exportHTMLAction, saveTe
     return (
         <div className="react-email-editor-div">
             <Toolbar
-                HTMLBody={HTMLBody}
-                JSONTemplate={JSONTemplate}
                 exportHTMLAction={exportHTMLAction}
                 saveTemplateAction={saveTemplateAction}
                 emailRef={emailEditorRef}
+                isShowExportHtml={isShowExportHtml}
+                isShowSaveTemplate={isShowSaveTemplate}
             />
 
             <EmailEditor
