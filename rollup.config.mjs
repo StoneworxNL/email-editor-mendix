@@ -1,5 +1,3 @@
-import commonjs from "@rollup/plugin-commonjs";
-
 // Mendix lists externals as regexes (/^react$/, /^mendix($|\/)/, …), which is
 // also how its commonjs `ignore` callback tests them. Match that exactly rather
 // than trying to recover module names from the patterns.
@@ -11,48 +9,14 @@ function externalMatcher(externals) {
 }
 
 /**
- * Let @rollup/plugin-commonjs convert `require()` of external modules.
- *
- * Mendix configures the plugin with
- *
- *   ignore: id => (config.external || []).some(v => new RegExp(v).test(id))
- *
- * so `require("react")` inside a CommonJS dependency is left in the output
- * verbatim. That is right for the AMD bundle, where a `require` exists, and
- * fatal for the ESM bundle the Mendix React client actually loads, which fails
- * on load with `ReferenceError: require is not defined` and takes the whole
- * page with it. react-email-editor ships CJS, so its `var React =
- * require('react')` lands in the bundle untouched.
- *
- * So rebuild the plugin with the same options minus that one. They are copied
- * from configs/rollup.config.mjs, where `extensions` is a fixed constant rather
- * than anything derived from this widget.
- *
- * Rewriting the dependency instead — injecting an ESM import and pointing the
- * require at it — looks simpler and is wrong: it makes the plugin treat the
- * file as a mixed ES module, so it stops wrapping it in a CommonJS scope, and
- * the bundle trades `require is not defined` for `exports is not defined`.
- */
-function useCommonjsThatConvertsExternals(plugins) {
-    const index = plugins.findIndex(plugin => plugin && plugin.name === "commonjs");
-    if (index === -1) {
-        throw new Error(
-            "rollup.config.mjs expected a plugin named 'commonjs' in the Mendix config and found " +
-                "none. Check configs/rollup.config.mjs in @mendix/pluggable-widgets-tools."
-        );
-    }
-
-    const patched = [...plugins];
-    patched[index] = commonjs({
-        extensions: [".js", ".jsx", ".tsx", ".ts"],
-        transformMixedEsModules: true,
-        requireReturnsDefault: "auto"
-    });
-    return patched;
-}
-
-/**
  * Fail this build rather than the app's.
+ *
+ * Mendix configures @rollup/plugin-commonjs to leave `require()` of externals
+ * (react, mendix) untouched. That is fatal in the ESM bundle the Mendix React
+ * client loads: it dies with `ReferenceError: require is not defined` and takes
+ * the whole page with it. react-email-editor 1.x only shipped CommonJS and
+ * needed a patched commonjs plugin; 2.x ships ESM, so this guard is all that is
+ * left, to catch any CommonJS dependency added later.
  *
  * An unconverted require() is invisible in the widget build's own output: it
  * surfaces later as a blank page and a stack trace pointing into a minified
@@ -93,9 +57,6 @@ function guardBundleOutput(externals) {
 export default args =>
     args.configDefaultConfig.map(config => {
         const externals = Array.isArray(config.external) ? config.external : [];
-        config.plugins = [
-            ...useCommonjsThatConvertsExternals(config.plugins || []),
-            guardBundleOutput(externals)
-        ];
+        config.plugins = [...(config.plugins || []), guardBundleOutput(externals)];
         return config;
     });

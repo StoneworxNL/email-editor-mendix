@@ -1,4 +1,5 @@
 import { ReactEmailEditorPreviewProps } from "../typings/ReactEmailEditorProps";
+import { parseAdvancedOptions } from "./utils/editorOptions";
 
 export type Platform = "web" | "desktop";
 
@@ -104,39 +105,68 @@ export function getProperties(
     defaultProperties: Properties /* , target: Platform*/
 ): Properties {
     if (!_values.isShowExportHtml) {
-        hideProperty(defaultProperties, "exportHTMLAction");
+        hideProperties(defaultProperties, ["exportHtmlCaption", "exportHTMLAction"]);
     }
     if (!_values.isShowSaveTemplate) {
-        hideProperty(defaultProperties, "saveTemplateAction");
+        hideProperties(defaultProperties, ["saveTemplateCaption", "saveTemplateAction"]);
+    }
+    if (!_values.mergeTags) {
+        hideProperties(defaultProperties, ["mergeTagName", "mergeTagValue", "mergeTagSample"]);
+    }
+    if (_values.imageUploadMode !== "endpoint") {
+        hideProperties(defaultProperties, ["imageUploadUrl"]);
     }
     return defaultProperties;
 }
 
-function hideProperty(propertyGroups: Properties, key: string): void {
+function hideProperties(propertyGroups: Properties, keys: string[]): void {
     propertyGroups.forEach(group => {
         if (group.properties) {
-            group.properties = group.properties.filter(p => p.key !== key);
+            group.properties = group.properties.filter(p => !keys.includes(p.key));
         }
         if (group.propertyGroups) {
-            hideProperty(group.propertyGroups, key);
+            hideProperties(group.propertyGroups, keys);
         }
     });
 }
 
-// export function check(_values: ReactEmailEditorPreviewProps): Problem[] {
-//     const errors: Problem[] = [];
-//     // Add errors to the above array to throw errors in Studio and Studio Pro.
-//     /* Example
-//     if (values.myProperty !== "custom") {
-//         errors.push({
-//             property: `myProperty`,
-//             message: `The value of 'myProperty' is different of 'custom'.`,
-//             url: "https://github.com/myrepo/mywidget"
-//         });
-//     }
-//     */
-//     return errors;
-// }
+export function check(_values: ReactEmailEditorPreviewProps): Problem[] {
+    const errors: Problem[] = [];
+
+    const { error } = parseAdvancedOptions(_values.advancedOptions);
+    if (error) {
+        errors.push({ property: "advancedOptions", message: error });
+    }
+    if (_values.imageUploadMode === "endpoint" && !_values.imageUploadUrl.trim()) {
+        errors.push({ property: "imageUploadUrl", message: "Set the URL that receives uploaded images." });
+    }
+    if (_values.mergeTags) {
+        if (!_values.mergeTagName) {
+            errors.push({ property: "mergeTagName", message: "Set the name of the merge tags." });
+        }
+        if (!_values.mergeTagValue) {
+            errors.push({ property: "mergeTagValue", message: "Set the value of the merge tags." });
+        }
+    }
+    if (_values.projectId !== null && _values.projectId < 0) {
+        errors.push({ property: "projectId", message: "The Unlayer project ID cannot be negative." });
+    }
+    if (_values.isShowExportHtml && !_values.exportHTMLAction) {
+        errors.push({
+            property: "exportHTMLAction",
+            severity: "warning",
+            message: "The Export HTML button is only shown when an action is set."
+        });
+    }
+    if (_values.isShowSaveTemplate && !_values.saveTemplateAction) {
+        errors.push({
+            property: "saveTemplateAction",
+            severity: "warning",
+            message: "The Save Template button is only shown when an action is set."
+        });
+    }
+    return errors;
+}
 
 // export function getPreview(values: ReactEmailEditorPreviewProps, isDarkMode: boolean, version: number[]): PreviewProps {
 //     // Customize your pluggable widget appearance for Studio Pro.

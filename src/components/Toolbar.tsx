@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react";
 import { ActionValue, Option } from "mendix";
-import { EditorRef } from "react-email-editor";
+import classNames from "classnames";
 
 /**
  * The action arguments, exactly as ReactEmailEditor.xml generates them into
@@ -9,50 +9,58 @@ import { EditorRef } from "react-email-editor";
  */
 export type TemplateActionArgs = { html__: Option<string>; json__: Option<string> };
 
-export interface ToolbarProps {
-    exportHTMLAction?: ActionValue<TemplateActionArgs>;
-    saveTemplateAction?: ActionValue<TemplateActionArgs>;
-    emailRef: React.RefObject<EditorRef | null>;
-    isShowExportHtml: boolean;
-    isShowSaveTemplate: boolean;
+export interface ToolbarButton {
+    caption: string;
+    action: ActionValue<TemplateActionArgs>;
+    onClick: () => void;
 }
 
-export function Toolbar({
-    exportHTMLAction,
-    saveTemplateAction,
-    emailRef,
-    isShowExportHtml,
-    isShowSaveTemplate
-}: ToolbarProps): ReactElement {
-    const exportAction = (action: ActionValue<TemplateActionArgs>) => {
-        const unlayer = emailRef.current?.editor;
-        unlayer?.exportHtml((data: any) => {
-            const { design, html } = data;
+export interface ToolbarProps {
+    /** False until the editor has loaded; nothing can be exported before that. */
+    ready: boolean;
+    readOnly: boolean;
+    exportHtml?: ToolbarButton;
+    saveTemplate?: ToolbarButton;
+}
 
-            if (action && action.canExecute && !action.isExecuting) {
-                action.execute({
-                    html__: html,
-                    json__: JSON.stringify(design)
-                });
-            }
-        });
-    };
-
+function ActionButton({
+    button,
+    disabled,
+    className
+}: {
+    button: ToolbarButton;
+    disabled: boolean;
+    className?: string;
+}): ReactElement {
+    const busy = button.action.isExecuting;
     return (
-        <div className="spacing-inner-bottom-medium">
-            {isShowExportHtml && exportHTMLAction && (
-                <button className="btn mx-button btn-default" onClick={() => exportAction(exportHTMLAction)}>
-                    Export HTML
-                </button>
-            )}
+        <button
+            type="button"
+            className={classNames("btn mx-button btn-default", className)}
+            disabled={disabled || busy || !button.action.canExecute}
+            aria-busy={busy}
+            onClick={button.onClick}
+        >
+            {button.caption}
+        </button>
+    );
+}
 
-            {isShowSaveTemplate && saveTemplateAction && (
-                <button
-                    className="btn mx-button btn-default spacing-outer-left-medium"
-                    onClick={() => exportAction(saveTemplateAction)}
-                >
-                    Save Template
-                </button>
+export function Toolbar({ ready, readOnly, exportHtml, saveTemplate }: ToolbarProps): ReactElement | null {
+    // Saving from a read-only editor would store nothing the user could change.
+    const showSave = saveTemplate && !readOnly;
+    if (!exportHtml && !showSave) {
+        return null;
+    }
+    return (
+        <div className="react-email-editor-toolbar spacing-inner-bottom-medium">
+            {exportHtml && <ActionButton button={exportHtml} disabled={!ready} />}
+            {showSave && (
+                <ActionButton
+                    button={saveTemplate}
+                    disabled={!ready}
+                    className={exportHtml ? "spacing-outer-left-medium" : undefined}
+                />
             )}
         </div>
     );

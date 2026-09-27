@@ -1,9 +1,9 @@
 {
   "name": "reactemaileditor",
   "widgetName": "ReactEmailEditor",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "React Email Editor based on Unlayer's wrapper component available at https://github.com/unlayer/react-email-editor",
-  "copyright": "\u00a9 JL 2025",
+  "copyright": "© JL 2025",
   "author": "Stoneworx",
   "engines": {
     "node": ">=16"
@@ -31,7 +31,7 @@
   "dependencies": {
     "classnames": "^2.5.1",
     "mendix": "^10.24.0",
-    "react-email-editor": "1.7.11"
+    "react-email-editor": "2.1.2"
   },
   "resolutions": {
     "react": "18.2.0",
