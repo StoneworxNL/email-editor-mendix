@@ -100,15 +100,17 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         if (!editor || jsonStatus !== ValueStatus.Available) {
             return;
         }
-        if (jsonValue === (syncedJson.current ?? "")) {
+        // An empty value never clears the editor. It is what a rollback of a new
+        // object produces, for instance when a pop-up opened by the save action is
+        // closed, and clearing would throw away everything the user made.
+        if (jsonValue === "") {
+            setLoadError(undefined);
+            return;
+        }
+        if (jsonValue === syncedJson.current) {
             return;
         }
         syncedJson.current = jsonValue;
-        if (jsonValue === "") {
-            setLoadError(undefined);
-            editor.loadBlank();
-            return;
-        }
         const { design, error } = parseDesign(jsonValue);
         setLoadError(error);
         if (design) {
