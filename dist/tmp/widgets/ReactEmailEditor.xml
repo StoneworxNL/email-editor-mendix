@@ -3,7 +3,7 @@
     id="stoneworx.reactemaileditor.ReactEmailEditor"
     pluginWidget="true"
     needsEntityContext="true"
-    offlineCapable="true"
+    offlineCapable="false"
     supportedPlatform="Web"
     xmlns="http://www.mendix.com/widget/1.0/"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -16,36 +16,140 @@
     </description>
     <icon />
     <properties>
-        <propertyGroup caption="Data">
-            <property key="HTMLBody" type="attribute">
-                <caption>HTML Body</caption>
-                <description>String attribute to get/save the email's resulting HTML body.</description>
-                <attributeTypes>
-                    <attributeType name="String" />
-                </attributeTypes>
-            </property>
-            <property key="JSONTemplate" type="attribute">
-                <caption>JSON Template (String)</caption>
-                <description>JSON template (as a string), either to pre-load, or save it afterwards.</description>
-                <attributeTypes>
-                    <attributeType name="String" />
-                </attributeTypes>
-            </property>
-            <!-- <property key="minHeight" type="expression">
-                <caption>Min. minHeight</caption>
-                <description />
-                <returnType type="String" />
-            </property> -->
+        <propertyGroup caption="General">
+            <propertyGroup caption="Data">
+                <property key="JSONTemplate" type="attribute">
+                    <caption>JSON Template (String)</caption>
+                    <description>JSON design (as a string), loaded into the editor and written back when the design is saved.</description>
+                    <attributeTypes>
+                        <attributeType name="String" />
+                    </attributeTypes>
+                </property>
+                <property key="HTMLBody" type="attribute" required="false">
+                    <caption>HTML (String)</caption>
+                    <description>Optional. Receives the exported HTML whenever the design is saved.</description>
+                    <attributeTypes>
+                        <attributeType name="String" />
+                    </attributeTypes>
+                </property>
+                <property key="saveOnChange" type="boolean" defaultValue="false">
+                    <caption>Write changes to attributes</caption>
+                    <description>Write the design (and HTML) to the attributes while the user edits, so a regular Save button on the page stores them. No action is executed.</description>
+                </property>
+            </propertyGroup>
+            <propertyGroup caption="Editor">
+                <property key="projectId" type="integer" defaultValue="0">
+                    <caption>Unlayer project ID</caption>
+                    <description>Project ID from the Unlayer Developer Console. Required for production use; 0 leaves it unset.</description>
+                </property>
+                <property key="editorHeight" type="string" defaultValue="700px">
+                    <caption>Height</caption>
+                    <description>Minimum height of the editor, as a CSS length (for example 700px or 80vh). Unlayer recommends at least 700px.</description>
+                </property>
+                <property key="theme" type="enumeration" defaultValue="modern_light">
+                    <caption>Theme</caption>
+                    <description>Appearance of the editor.</description>
+                    <enumerationValues>
+                        <enumerationValue key="modern_light">Modern light</enumerationValue>
+                        <enumerationValue key="modern_dark">Modern dark</enumerationValue>
+                        <enumerationValue key="classic_light">Classic light</enumerationValue>
+                        <enumerationValue key="classic_dark">Classic dark</enumerationValue>
+                    </enumerationValues>
+                </property>
+                <property key="locale" type="expression" required="false">
+                    <caption>Locale</caption>
+                    <description>Optional. Editor language, for example en-US, nl-NL or pt-PT. Leave empty for English.</description>
+                    <returnType type="String" />
+                </property>
+                <property key="advancedOptions" type="string" multiline="true" required="false">
+                    <caption>Advanced options (JSON)</caption>
+                    <description>Optional. Extra Unlayer editor options as a JSON object, for example {"tools": {"html": {"enabled": false}}, "features": {"stockImages": false}}. See https://docs.unlayer.com.</description>
+                </property>
+            </propertyGroup>
         </propertyGroup>
         <propertyGroup caption="Actions">
-            <property key="exportHTMLAction" type="action">
-                <caption>Export HTML</caption>
-                <description>Action to handle the built HTML email body.</description>
-            </property>
-            <property key="saveTemplateAction" type="action">
-                <caption>Save JSON Template</caption>
-                <description>Action to Save JSON template as a string.</description>
-            </property>
+            <propertyGroup caption="Export HTML">
+                <property key="isShowExportHtml" type="boolean" defaultValue="true">
+                    <caption>Show Export HTML Button</caption>
+                    <description>Show or hide the Export HTML button in the toolbar.</description>
+                </property>
+                <property key="exportHtmlCaption" type="textTemplate" required="false">
+                    <caption>Caption</caption>
+                    <description>Caption of the Export HTML button.</description>
+                    <translations>
+                        <translation lang="en_US">Export HTML</translation>
+                    </translations>
+                </property>
+                <property key="exportHTMLAction" type="action" required="false">
+                    <caption>Export HTML</caption>
+                    <description>Action to handle the built HTML email body.</description>
+                    <actionVariables>
+                        <actionVariable key="html__" type="String" caption="HTML of Email Template" />
+                        <actionVariable key="json__" type="String" caption="JSON Design of Email Template" />
+                    </actionVariables>
+                </property>
+            </propertyGroup>
+            <propertyGroup caption="Save Template">
+                <property key="isShowSaveTemplate" type="boolean" defaultValue="true">
+                    <caption>Show Save Template Button</caption>
+                    <description>Show or hide the Save Template button in the toolbar.</description>
+                </property>
+                <property key="saveTemplateCaption" type="textTemplate" required="false">
+                    <caption>Caption</caption>
+                    <description>Caption of the Save Template button.</description>
+                    <translations>
+                        <translation lang="en_US">Save Template</translation>
+                    </translations>
+                </property>
+                <property key="saveTemplateAction" type="action" required="false">
+                    <caption>Save JSON Template</caption>
+                    <description>Action to Save JSON template as a string. The attributes are written before it runs.</description>
+                    <actionVariables>
+                        <actionVariable key="html__" type="String" caption="HTML of Email Template" />
+                        <actionVariable key="json__" type="String" caption="JSON Design of Email Template" />
+                    </actionVariables>
+                </property>
+            </propertyGroup>
+        </propertyGroup>
+        <propertyGroup caption="Merge tags">
+            <propertyGroup caption="Merge tags">
+                <property key="mergeTags" type="datasource" isList="true" required="false">
+                    <caption>Merge tags</caption>
+                    <description>Optional. Placeholders offered in the editor's merge tag menu, for example Mendix email template placeholders such as {%Name%}.</description>
+                </property>
+                <property key="mergeTagName" type="expression" dataSource="mergeTags" required="false">
+                    <caption>Name</caption>
+                    <description>Label shown in the merge tag menu.</description>
+                    <returnType type="String" />
+                </property>
+                <property key="mergeTagValue" type="expression" dataSource="mergeTags" required="false">
+                    <caption>Value</caption>
+                    <description>Text inserted into the design, for example '{%' + $currentObject/Name + '%}'.</description>
+                    <returnType type="String" />
+                </property>
+                <property key="mergeTagSample" type="expression" dataSource="mergeTags" required="false">
+                    <caption>Sample</caption>
+                    <description>Optional. Value shown instead of the tag while previewing.</description>
+                    <returnType type="String" />
+                </property>
+            </propertyGroup>
+        </propertyGroup>
+        <propertyGroup caption="Images">
+            <propertyGroup caption="Image uploads">
+                <property key="imageUploadMode" type="enumeration" defaultValue="unlayer">
+                    <caption>Image uploads</caption>
+                    <description>Where images that users upload are stored. Unlayer's storage is outside this application.</description>
+                    <enumerationValues>
+                        <enumerationValue key="unlayer">Unlayer storage</enumerationValue>
+                        <enumerationValue key="endpoint">Own endpoint</enumerationValue>
+                        <enumerationValue key="disabled">Disabled</enumerationValue>
+                    </enumerationValues>
+                </property>
+                <property key="imageUploadUrl" type="string" required="false">
+                    <caption>Upload URL</caption>
+                    <description>Endpoint that receives the image as multipart/form-data (part "file") and responds with JSON {"url": "..."}, for example rest/emaileditor/v1/images.</description>
+                </property>
+            </propertyGroup>
         </propertyGroup>
     </properties>
 </widget>

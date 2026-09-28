@@ -1,54 +1,68 @@
 import React, { ReactElement } from "react";
-import { ActionValue, EditableValue } from "mendix";
-import { EditorRef } from "react-email-editor";
+import { ActionValue, Option } from "mendix";
+import classNames from "classnames";
 
-export interface ToolbarProps {
-    HTMLBody?: EditableValue<string>;
-    JSONTemplate?: EditableValue<string>;
-    exportHTMLAction?: ActionValue;
-    saveTemplateAction?: ActionValue;
-    emailRef: React.RefObject<EditorRef | null>;
+/**
+ * The action arguments, exactly as ReactEmailEditor.xml generates them into
+ * typings/ReactEmailEditorProps.d.ts. Spelling them out once keeps this file and
+ * the generated props from drifting apart.
+ */
+export type TemplateActionArgs = { html__: Option<string>; json__: Option<string> };
+
+export interface ToolbarButton {
+    caption: string;
+    action: ActionValue<TemplateActionArgs>;
+    onClick: () => void;
 }
 
-export function Toolbar({
-    HTMLBody,
-    JSONTemplate,
-    exportHTMLAction,
-    saveTemplateAction,
-    emailRef
-}: ToolbarProps): ReactElement {
-    const exportAction = (action: ActionValue) => {
-        const unlayer = emailRef.current?.editor;
-        unlayer?.exportHtml((data: any) => {
-            const { design, html } = data;
+export interface ToolbarProps {
+    /** False until the editor has loaded; nothing can be exported before that. */
+    ready: boolean;
+    readOnly: boolean;
+    /** False while the template attribute is loading, unavailable or could not be read. */
+    canSave: boolean;
+    exportHtml?: ToolbarButton;
+    saveTemplate?: ToolbarButton;
+}
 
-            // ActionValue is used to represent actions, like the On click property of an action button. For any action except Do nothing, your component will receive a value adhering to the following interface. For Do nothing it will receive undefined. The ActionValue prop appears like this:
-            if (action && action.canExecute && !action.isExecuting) {
-                if (HTMLBody && HTMLBody.status === "available") {
-                    HTMLBody.setValue(html);
-                    if (JSONTemplate && JSONTemplate.status === "available")
-                        JSONTemplate.setValue(JSON.stringify(design));
-                    action.execute();
-                }
-            }
-        });
-    };
-
+function ActionButton({
+    button,
+    disabled,
+    className
+}: {
+    button: ToolbarButton;
+    disabled: boolean;
+    className?: string;
+}): ReactElement {
+    const busy = button.action.isExecuting;
     return (
-        <div className="spacing-inner-bottom-medium">
-            {exportHTMLAction && (
-                <button className="btn mx-button btn-default" onClick={() => exportAction(exportHTMLAction)}>
-                    Export HTML
-                </button>
-            )}
+        <button
+            type="button"
+            className={classNames("btn mx-button btn-default", className)}
+            disabled={disabled || busy || !button.action.canExecute}
+            aria-busy={busy}
+            onClick={button.onClick}
+        >
+            {button.caption}
+        </button>
+    );
+}
 
-            {saveTemplateAction && (
-                <button
-                    className="btn mx-button btn-default spacing-outer-left-medium"
-                    onClick={() => exportAction(saveTemplateAction)}
-                >
-                    Save Template
-                </button>
+export function Toolbar({ ready, readOnly, canSave, exportHtml, saveTemplate }: ToolbarProps): ReactElement | null {
+    // Saving from a read-only editor would store nothing the user could change.
+    const showSave = saveTemplate && !readOnly;
+    if (!exportHtml && !showSave) {
+        return null;
+    }
+    return (
+        <div className="react-email-editor-toolbar spacing-inner-bottom-medium">
+            {exportHtml && <ActionButton button={exportHtml} disabled={!ready} />}
+            {showSave && (
+                <ActionButton
+                    button={saveTemplate}
+                    disabled={!ready || !canSave}
+                    className={exportHtml ? "spacing-outer-left-medium" : undefined}
+                />
             )}
         </div>
     );

@@ -4,17 +4,37 @@
  * @author Mendix Widgets Framework Team
  */
 import { CSSProperties } from "react";
-import { ActionValue, EditableValue } from "mendix";
+import { ActionValue, DynamicValue, EditableValue, ListValue, Option, ListExpressionValue } from "mendix";
+
+export type ThemeEnum = "modern_light" | "modern_dark" | "classic_light" | "classic_dark";
+
+export type ImageUploadModeEnum = "unlayer" | "endpoint" | "disabled";
 
 export interface ReactEmailEditorContainerProps {
     name: string;
     class: string;
     style?: CSSProperties;
     tabIndex?: number;
-    HTMLBody: EditableValue<string>;
     JSONTemplate: EditableValue<string>;
-    exportHTMLAction?: ActionValue;
-    saveTemplateAction?: ActionValue;
+    HTMLBody?: EditableValue<string>;
+    saveOnChange: boolean;
+    projectId: number;
+    editorHeight: string;
+    theme: ThemeEnum;
+    locale?: DynamicValue<string>;
+    advancedOptions: string;
+    isShowExportHtml: boolean;
+    exportHtmlCaption?: DynamicValue<string>;
+    exportHTMLAction?: ActionValue<{ html__: Option<string>; json__: Option<string> }>;
+    isShowSaveTemplate: boolean;
+    saveTemplateCaption?: DynamicValue<string>;
+    saveTemplateAction?: ActionValue<{ html__: Option<string>; json__: Option<string> }>;
+    mergeTags?: ListValue;
+    mergeTagName?: ListExpressionValue<string>;
+    mergeTagValue?: ListExpressionValue<string>;
+    mergeTagSample?: ListExpressionValue<string>;
+    imageUploadMode: ImageUploadModeEnum;
+    imageUploadUrl: string;
 }
 
 export interface ReactEmailEditorPreviewProps {
@@ -28,8 +48,24 @@ export interface ReactEmailEditorPreviewProps {
     readOnly: boolean;
     renderMode: "design" | "xray" | "structure";
     translate: (text: string) => string;
-    HTMLBody: string;
     JSONTemplate: string;
+    HTMLBody: string;
+    saveOnChange: boolean;
+    projectId: number | null;
+    editorHeight: string;
+    theme: ThemeEnum;
+    locale: string;
+    advancedOptions: string;
+    isShowExportHtml: boolean;
+    exportHtmlCaption: string;
     exportHTMLAction: {} | null;
+    isShowSaveTemplate: boolean;
+    saveTemplateCaption: string;
     saveTemplateAction: {} | null;
+    mergeTags: {} | { caption: string } | { type: string } | null;
+    mergeTagName: string;
+    mergeTagValue: string;
+    mergeTagSample: string;
+    imageUploadMode: ImageUploadModeEnum;
+    imageUploadUrl: string;
 }
