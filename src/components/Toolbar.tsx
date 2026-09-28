@@ -19,6 +19,8 @@ export interface ToolbarProps {
     /** False until the editor has loaded; nothing can be exported before that. */
     ready: boolean;
     readOnly: boolean;
+    /** False while the template attribute is loading, unavailable or could not be read. */
+    canSave: boolean;
     exportHtml?: ToolbarButton;
     saveTemplate?: ToolbarButton;
 }
@@ -46,7 +48,7 @@ function ActionButton({
     );
 }
 
-export function Toolbar({ ready, readOnly, exportHtml, saveTemplate }: ToolbarProps): ReactElement | null {
+export function Toolbar({ ready, readOnly, canSave, exportHtml, saveTemplate }: ToolbarProps): ReactElement | null {
     // Saving from a read-only editor would store nothing the user could change.
     const showSave = saveTemplate && !readOnly;
     if (!exportHtml && !showSave) {
@@ -58,7 +60,7 @@ export function Toolbar({ ready, readOnly, exportHtml, saveTemplate }: ToolbarPr
             {showSave && (
                 <ActionButton
                     button={saveTemplate}
-                    disabled={!ready}
+                    disabled={!ready || !canSave}
                     className={exportHtml ? "spacing-outer-left-medium" : undefined}
                 />
             )}

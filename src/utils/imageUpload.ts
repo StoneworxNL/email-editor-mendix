@@ -30,7 +30,7 @@ export function registerImageUpload(editor: Editor, uploadUrl: string): void {
             return;
         }
         const body = new FormData();
-        body.append("file", image, image.name);
+        body.append("file", image);
 
         done({ progress: 10 });
         fetch(uploadUrl, {

@@ -21,6 +21,7 @@
     "build": "pluggable-widgets-tools build:web",
     "lint": "pluggable-widgets-tools lint",
     "lint:fix": "pluggable-widgets-tools lint:fix",
+    "test": "pluggable-widgets-tools test:unit:web:enzyme-free",
     "prerelease": "npm run lint",
     "release": "pluggable-widgets-tools release:web"
   },
@@ -39,7 +40,8 @@
     "react-native": "0.72.7",
     "@types/react": "18.2.0",
     "@types/react-dom": "18.2.0",
-    "rollup": "3.30.0"
+    "rollup": "3.30.0",
+    "pretty-format": "29.7.0"
   },
   "overrides": {
     "react": "18.2.0",
@@ -47,7 +49,8 @@
     "react-native": "0.72.7",
     "@types/react": "18.2.0",
     "@types/react-dom": "18.2.0",
-    "rollup": "3.30.0"
+    "rollup": "3.30.0",
+    "pretty-format": "29.7.0"
   },
   "comment_mendix10": [
     "Aligned to Mendix 10.24 (React 18), matching the app this widget ships in.",
@@ -56,6 +59,10 @@
     "major and React must match the target Studio Pro, rollup must be pinned so",
     "the plugin peers do not hoist v4 over the v3 the config expects, and react",
     "must not appear in dependencies or the toolchain prompts to migrate and",
-    "silently builds nothing."
+    "silently builds nothing.",
+    "",
+    "pretty-format is pinned for npm test only: @testing-library/dom@8 hoists",
+    "27.x, which rejects the maxWidth option jest-matcher-utils passes it, so a",
+    "failing assertion reports that error instead of its diff."
   ]
 }

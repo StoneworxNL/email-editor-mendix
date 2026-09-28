@@ -7,6 +7,7 @@ import { ReactEmailEditorContainerProps } from "../../typings/ReactEmailEditorPr
 import { buildOptions, Editor, parseAdvancedOptions, parseDesign } from "../utils/editorOptions";
 import { registerImageUpload } from "../utils/imageUpload";
 import { buildMergeTags } from "../utils/mergeTags";
+import { canWriteTemplate } from "../utils/templateAttribute";
 import { TemplateActionArgs, Toolbar } from "./Toolbar";
 
 /** How long to wait after the last edit before writing to the attributes. */
@@ -19,6 +20,13 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
     const emailEditorRef = useRef<EditorRef>(null);
     const [editor, setEditor] = useState<Editor | null>(null);
     const [loadError, setLoadError] = useState<string>();
+    // Read by the save-on-change timer, which can fire before the render that
+    // follows setLoadError.
+    const loadErrorRef = useRef<string>();
+    const reportLoadError = useCallback((message: string | undefined) => {
+        loadErrorRef.current = message;
+        setLoadError(message);
+    }, []);
 
     // Unlayer calls handlers registered once per editor; they read the latest
     // props through this ref instead of the render they were created in.
@@ -53,16 +61,18 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         });
     }, []);
 
-    /** Write the design to the attributes, if they can be written. */
-    const writeAttributes = useCallback(({ html, json }: Exported): void => {
+    /** Write the design to the attributes, if they can be written. Returns whether it did. */
+    const writeAttributes = useCallback(({ html, json }: Exported): boolean => {
         const { JSONTemplate: jsonAttr, HTMLBody: htmlAttr } = propsRef.current;
-        syncedJson.current = json;
-        if (!jsonAttr.readOnly) {
-            jsonAttr.setValue(json);
+        if (!canWriteTemplate(jsonAttr, loadErrorRef.current)) {
+            return false;
         }
-        if (htmlAttr && !htmlAttr.readOnly) {
+        syncedJson.current = json;
+        jsonAttr.setValue(json);
+        if (htmlAttr && htmlAttr.status === ValueStatus.Available && !htmlAttr.readOnly) {
             htmlAttr.setValue(html);
         }
+        return true;
     }, []);
 
     const onReady = useCallback(
@@ -74,7 +84,7 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
 
             unlayer.addEventListener("design:updated", () => {
                 const current = propsRef.current;
-                if (!current.saveOnChange || current.JSONTemplate.readOnly) {
+                if (!current.saveOnChange || !canWriteTemplate(current.JSONTemplate, loadErrorRef.current)) {
                     return;
                 }
                 clearTimeout(saveTimer.current);
@@ -104,7 +114,7 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         // object produces, for instance when a pop-up opened by the save action is
         // closed, and clearing would throw away everything the user made.
         if (jsonValue === "") {
-            setLoadError(undefined);
+            reportLoadError(undefined);
             return;
         }
         if (jsonValue === syncedJson.current) {
@@ -112,13 +122,13 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         }
         syncedJson.current = jsonValue;
         const { design, error } = parseDesign(jsonValue);
-        setLoadError(error);
+        reportLoadError(error);
         if (design) {
             editor.loadDesign(design as Parameters<Editor["loadDesign"]>[0]);
         } else {
             console.error(`ReactEmailEditor: ${error}`);
         }
-    }, [editor, jsonStatus, jsonValue]);
+    }, [editor, jsonStatus, jsonValue, reportLoadError]);
 
     // Read-only: show the design as a preview rather than an editor.
     const previewShown = useRef(false);
@@ -160,8 +170,10 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
                 return;
             }
             const exported = await exportDesign(editor);
-            if (write) {
-                writeAttributes(exported);
+            // Running the save action after a refused write would commit the
+            // object as if the template had been stored.
+            if (write && !writeAttributes(exported)) {
+                return;
             }
             if (action.canExecute && !action.isExecuting) {
                 action.execute({ html__: exported.html, json__: exported.json });
@@ -177,6 +189,7 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
             <Toolbar
                 ready={editor !== null}
                 readOnly={readOnly}
+                canSave={canWriteTemplate(JSONTemplate, loadError)}
                 exportHtml={
                     props.isShowExportHtml && props.exportHTMLAction
                         ? {
