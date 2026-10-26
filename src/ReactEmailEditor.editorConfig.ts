@@ -104,6 +104,9 @@ export function getProperties(
     _values: ReactEmailEditorPreviewProps,
     defaultProperties: Properties /* , target: Platform*/
 ): Properties {
+    if (!_values.isShowPreview) {
+        hideProperties(defaultProperties, ["showPreviewCaption", "hidePreviewCaption"]);
+    }
     if (!_values.isShowExportHtml) {
         hideProperties(defaultProperties, ["exportHtmlCaption", "exportHTMLAction"]);
     }

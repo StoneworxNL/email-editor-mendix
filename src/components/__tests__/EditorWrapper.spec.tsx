@@ -23,6 +23,11 @@ class FakeUnlayer {
         (this.listeners[type] ??= []).push(listener);
     }
 
+    /** What Unlayer does once it has loaded a design. */
+    loaded(): void {
+        (this.listeners["design:loaded"] ?? []).forEach(listener => listener());
+    }
+
     exportHtml(callback: (data: { html: string; design: object }) => void): void {
         callback({ html: "<p>on screen</p>", design: this.design });
     }
@@ -86,7 +91,12 @@ function props(overrides: Partial<ReactEmailEditorContainerProps> = {}): ReactEm
         projectId: 0,
         editorHeight: "",
         theme: "modern_light",
+        displayMode: "email",
+        editorVersion: "",
+        scriptUrl: "",
         advancedOptions: "",
+        isShowPreview: false,
+        previewDevice: "desktop",
         isShowExportHtml: false,
         isShowSaveTemplate: true,
         saveTemplateAction: saveAction(),
@@ -282,5 +292,77 @@ describe("Loading", () => {
         rerender(<EditorWrapper {...p} JSONTemplate={attribute(JSON.stringify(EDITED))} />);
 
         expect(unlayer.loadDesign).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe("Preview", () => {
+    function previewButton(): HTMLButtonElement | null {
+        return screen.queryByRole("button", { name: /Preview$/ }) as HTMLButtonElement | null;
+    }
+
+    it("switches between editing and previewing on the chosen device", () => {
+        mount(<EditorWrapper {...props({ isShowPreview: true, previewDevice: "mobile" })} />);
+
+        act(() => {
+            fireEvent.click(previewButton()!);
+        });
+        expect(unlayer.showPreview).toHaveBeenCalledWith("mobile");
+        expect(previewButton()!.textContent).toBe("Hide Preview");
+        expect(previewButton()!.getAttribute("aria-pressed")).toBe("true");
+
+        act(() => {
+            fireEvent.click(previewButton()!);
+        });
+        expect(unlayer.hidePreview).toHaveBeenCalledTimes(1);
+        expect(previewButton()!.textContent).toBe("Show Preview");
+    });
+
+    it("always previews a read-only editor, and offers no button to leave it", () => {
+        const JSONTemplate = attribute(STORED, ValueStatus.Available, true);
+        mount(<EditorWrapper {...props({ JSONTemplate, isShowPreview: true, previewDevice: "tablet" })} />);
+
+        expect(unlayer.showPreview).toHaveBeenCalledWith("tablet");
+        expect(previewButton()).toBeNull();
+    });
+
+    it("leaves the preview when the editor stops being read-only", () => {
+        const p = props({ JSONTemplate: attribute(STORED, ValueStatus.Available, true), isShowPreview: true });
+        const { rerender } = mount(<EditorWrapper {...p} />);
+
+        rerender(<EditorWrapper {...p} JSONTemplate={attribute(STORED)} />);
+
+        expect(unlayer.hidePreview).toHaveBeenCalledTimes(1);
+        expect(previewButton()!.textContent).toBe("Show Preview");
+    });
+});
+
+describe("Events", () => {
+    it("runs On ready once the editor is ready, and On design loaded after a load", () => {
+        const onReadyAction = saveAction();
+        const onDesignLoadAction = saveAction();
+        mount(<EditorWrapper {...props({ JSONTemplate: attribute(STORED), onReadyAction, onDesignLoadAction })} />);
+
+        expect(onReadyAction.execute).toHaveBeenCalledTimes(1);
+        expect(onDesignLoadAction.execute).not.toHaveBeenCalled();
+
+        act(() => unlayer.loaded());
+        expect(onDesignLoadAction.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it("runs On change with the HTML and JSON shortly after an edit, without writing the attributes", async () => {
+        const JSONTemplate = attribute(STORED);
+        const onDesignChangeAction = saveAction();
+        mount(<EditorWrapper {...props({ JSONTemplate, onDesignChangeAction })} />);
+
+        await act(async () => {
+            unlayer.edit(EDITED);
+            jest.runAllTimers();
+        });
+
+        expect(onDesignChangeAction.execute).toHaveBeenCalledWith({
+            html__: "<p>on screen</p>",
+            json__: JSON.stringify(EDITED)
+        });
+        expect(JSONTemplate.setValue).not.toHaveBeenCalled();
     });
 });

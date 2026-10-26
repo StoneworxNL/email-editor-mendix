@@ -8,6 +8,10 @@ import { CSSProperties } from "react";
 
 export type ThemeEnum = "modern_light" | "modern_dark" | "classic_light" | "classic_dark";
 
+export type DisplayModeEnum = "email" | "web" | "popup" | "document";
+
+export type PreviewDeviceEnum = "desktop" | "tablet" | "mobile";
+
 export type ImageUploadModeEnum = "unlayer" | "endpoint" | "disabled";
 
 export interface ReactEmailEditorContainerProps {
@@ -21,14 +25,24 @@ export interface ReactEmailEditorContainerProps {
     projectId: number;
     editorHeight: string;
     theme: ThemeEnum;
+    displayMode: DisplayModeEnum;
     locale?: DynamicValue<string>;
+    editorVersion: string;
+    scriptUrl: string;
     advancedOptions: string;
+    isShowPreview: boolean;
+    previewDevice: PreviewDeviceEnum;
+    showPreviewCaption?: DynamicValue<string>;
+    hidePreviewCaption?: DynamicValue<string>;
     isShowExportHtml: boolean;
     exportHtmlCaption?: DynamicValue<string>;
     exportHTMLAction?: ActionValue<{ html__: Option<string>; json__: Option<string> }>;
     isShowSaveTemplate: boolean;
     saveTemplateCaption?: DynamicValue<string>;
     saveTemplateAction?: ActionValue<{ html__: Option<string>; json__: Option<string> }>;
+    onReadyAction?: ActionValue;
+    onDesignLoadAction?: ActionValue;
+    onDesignChangeAction?: ActionValue<{ html__: Option<string>; json__: Option<string> }>;
     mergeTags?: ListValue;
     mergeTagName?: ListExpressionValue<string>;
     mergeTagValue?: ListExpressionValue<string>;
@@ -54,14 +68,24 @@ export interface ReactEmailEditorPreviewProps {
     projectId: number | null;
     editorHeight: string;
     theme: ThemeEnum;
+    displayMode: DisplayModeEnum;
     locale: string;
+    editorVersion: string;
+    scriptUrl: string;
     advancedOptions: string;
+    isShowPreview: boolean;
+    previewDevice: PreviewDeviceEnum;
+    showPreviewCaption: string;
+    hidePreviewCaption: string;
     isShowExportHtml: boolean;
     exportHtmlCaption: string;
     exportHTMLAction: {} | null;
     isShowSaveTemplate: boolean;
     saveTemplateCaption: string;
     saveTemplateAction: {} | null;
+    onReadyAction: {} | null;
+    onDesignLoadAction: {} | null;
+    onDesignChangeAction: {} | null;
     mergeTags: {} | { caption: string } | { type: string } | null;
     mergeTagName: string;
     mergeTagValue: string;

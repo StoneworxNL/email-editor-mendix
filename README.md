@@ -33,29 +33,36 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 5. Choose how the design is saved:
     - **Toolbar actions**: set the Save Template and/or Export HTML actions. Save Template writes the JSON and HTML
       attributes and then runs its action; both actions also receive the HTML and JSON as variables.
-    - **Write changes to attributes**: the attributes are updated while the user edits, so a regular Save button on
-      the page stores them.
+    - **Write changes to attributes**: the attributes are updated while the user edits, so a regular Save button on the
+      page stores them.
 
 If the object is read-only, the editor opens in preview mode and the Save Template button is hidden.
 
 ### Properties
 
-| Group        | Property                    | Description                                                                                          |
-| ------------ | --------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Data         | JSON Template               | String attribute holding the design.                                                                 |
-| Data         | HTML                        | Optional. String attribute that receives the exported HTML.                                          |
-| Data         | Write changes to attributes | Update the attributes while editing (off by default).                                                |
-| Editor       | Unlayer project ID          | Project ID from the [Unlayer Developer Console](https://dashboard.unlayer.com). Needed in production. |
-| Editor       | Height                      | Minimum height (CSS length). Unlayer recommends at least 1024 × 700 px.                              |
-| Editor       | Theme                       | Modern or classic, light or dark.                                                                    |
-| Editor       | Locale                      | Optional expression, eg. `'nl-NL'`.                                                                  |
-| Editor       | Advanced options (JSON)     | Any other [Unlayer option](https://docs.unlayer.com), eg. `{"tools": {"html": {"enabled": false}}}`. |
-| Actions      | Captions                    | Translatable button captions.                                                                        |
-| Merge tags   | Merge tags                  | Optional list of placeholders offered in the editor (see below).                                     |
-| Images       | Image uploads               | Unlayer storage, own endpoint or disabled (see below).                                               |
+| Group      | Property                    | Description                                                                                           |
+| ---------- | --------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Data       | JSON Template               | String attribute holding the design.                                                                  |
+| Data       | HTML                        | Optional. String attribute that receives the exported HTML.                                           |
+| Data       | Write changes to attributes | Update the attributes while editing (off by default).                                                 |
+| Editor     | Unlayer project ID          | Project ID from the [Unlayer Developer Console](https://dashboard.unlayer.com). Needed in production. |
+| Editor     | Height                      | Minimum height (CSS length). Unlayer recommends at least 1024 × 700 px.                               |
+| Editor     | Theme                       | Modern or classic, light or dark.                                                                     |
+| Editor     | Display mode                | Email, web page, pop-up or document. All but email may need a paid Unlayer plan.                      |
+| Editor     | Locale                      | Optional expression, eg. `'nl-NL'`.                                                                   |
+| Editor     | Editor version              | Optional Unlayer version, eg. `latest` or `1.157.0`. Empty loads Unlayer's stable version.            |
+| Editor     | Embed script URL            | Optional location of `embed.js`, eg. a self-hosted copy.                                              |
+| Editor     | Advanced options (JSON)     | Any other [Unlayer option](https://docs.unlayer.com), eg. `{"tools": {"html": {"enabled": false}}}`.  |
+| Actions    | Preview                     | Show/Hide Preview button and the device it starts on. A read-only editor always previews.             |
+| Actions    | Captions                    | Translatable button captions.                                                                         |
+| Events     | On ready                    | Runs when the editor is ready, and again whenever it is recreated.                                    |
+| Events     | On design loaded            | Runs after the design from the attribute has been loaded.                                             |
+| Events     | On change                   | Runs shortly after the user stops editing, with the HTML and JSON as variables.                       |
+| Merge tags | Merge tags                  | Optional list of placeholders offered in the editor (see below).                                      |
+| Images     | Image uploads               | Unlayer storage, own endpoint or disabled (see below).                                                |
 
-Advanced options are applied when the editor is created; changing them recreates the editor. Locale and merge tags
-are updated in place.
+Display mode, editor version and advanced options are applied when the editor is created; changing them recreates the
+editor. Locale and merge tags are updated in place.
 
 ### Merge Tags
 
@@ -69,20 +76,20 @@ Point the Merge tags data source at a list (eg. a microflow returning non-persis
 ### Image Uploads
 
 By default, images that users upload are stored by Unlayer, outside your application. To keep them in your app, set
-**Image uploads** to **Own endpoint** and set **Upload URL** to an endpoint in your app (eg. a published REST
-service at `rest/emaileditor/v1/images`) that:
+**Image uploads** to **Own endpoint** and set **Upload URL** to an endpoint in your app (eg. a published REST service at
+`rest/emaileditor/v1/images`) that:
 
 -   accepts a `POST` with `multipart/form-data`, the image in a part named `file`
 -   stores it where the email's recipients can reach it (the URL ends up in the email)
 -   responds with JSON: `{"url": "https://your-app/path/to/image.png"}`
 
-When available, the Mendix session's CSRF token is sent in the `X-Csrf-Token` header, so the service can use the
-active session for authentication. Choose **Disabled** to hide uploads entirely.
+When available, the Mendix session's CSRF token is sent in the `X-Csrf-Token` header, so the service can use the active
+session for authentication. Choose **Disabled** to hide uploads entirely.
 
 ### Content Security Policy
 
-The editor loads `https://editor.unlayer.com/embed.js` and runs in an iframe from `editor.unlayer.com`. If your app
-sets a Content Security Policy, allow that host in `script-src` and `frame-src`. The widget cannot be used offline.
+The editor loads `https://editor.unlayer.com/embed.js` and runs in an iframe from `editor.unlayer.com`. If your app sets
+a Content Security Policy, allow that host in `script-src` and `frame-src`. The widget cannot be used offline.
 
 ### Configuration Screenshots
 
@@ -109,7 +116,7 @@ sets a Content Security Policy, allow that host in `script-src` and `frame-src`.
 ## Demo Project
 
 -   [Mendix app running on the cloud](https://email-editor-mendix-sandbox.mxapps.io/index.html)
--   [Mendix demo module (.mpk)](https://github.com/StoneworxNL/email-editor-mendix/tree/main/demo) 
+-   [Mendix demo module (.mpk)](https://github.com/StoneworxNL/email-editor-mendix/tree/main/demo)
     <!-- - [Marketplace widget](https://marketplace.mendix.com/link/component/237438) -->
 
 ### Editor Embedded in Mendix Web App

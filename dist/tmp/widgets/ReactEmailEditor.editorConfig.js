@@ -30,6 +30,9 @@ function parseAdvancedOptions(json) {
   }
 }
 function getProperties(_values, defaultProperties /* , target: Platform*/) {
+  if (!_values.isShowPreview) {
+    hideProperties(defaultProperties, ["showPreviewCaption", "hidePreviewCaption"]);
+  }
   if (!_values.isShowExportHtml) {
     hideProperties(defaultProperties, ["exportHtmlCaption", "exportHTMLAction"]);
   }
