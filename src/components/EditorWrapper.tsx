@@ -24,6 +24,15 @@ function execute(action: ActionValue<any> | undefined, args?: TemplateActionArgs
     }
 }
 
+/**
+ * The language the Mendix client renders the page in (<html lang>, eg. nl-NL),
+ * or "" for English, which is the editor's default.
+ */
+function appLocale(): string {
+    const lang = document.documentElement.lang;
+    return !lang || lang.toLowerCase().startsWith("en") ? "" : lang;
+}
+
 export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactElement {
     const { JSONTemplate, projectId, theme, imageUploadMode, advancedOptions, displayMode, editorVersion } = props;
     const emailEditorRef = useRef<EditorRef<DisplayModeEnum>>(null);
@@ -32,9 +41,13 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         () => parseAdvancedOptions(advancedOptions),
         [advancedOptions]
     );
+    // When the widget shows the preview (its button, or a read-only editor),
+    // Unlayer's own preview controls are hidden, so only the widget opens and
+    // closes it and the button never shows the wrong state.
+    const controlsPreview = props.isShowPreview || JSONTemplate.readOnly;
     const options = useMemo(
-        () => buildOptions(advanced, projectId, theme, imageUploadMode, displayMode, editorVersion),
-        [advanced, projectId, theme, imageUploadMode, displayMode, editorVersion]
+        () => buildOptions(advanced, projectId, theme, imageUploadMode, displayMode, editorVersion, controlsPreview),
+        [advanced, projectId, theme, imageUploadMode, displayMode, editorVersion, controlsPreview]
     );
 
     // The editor is recreated when its options change. Remember which options
@@ -98,11 +111,6 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
 
     const onReady = useCallback(
         (unlayer: Editor) => {
-            const { imageUploadUrl } = propsRef.current;
-            if (propsRef.current.imageUploadMode === "endpoint" && imageUploadUrl) {
-                registerImageUpload(unlayer, imageUploadUrl);
-            }
-
             unlayer.addEventListener("design:updated", () => {
                 const current = propsRef.current;
                 const write = current.saveOnChange && canWriteTemplate(current.JSONTemplate, loadErrorRef.current);
@@ -175,7 +183,18 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         setPreviewToggledFor(previewing ? null : editor);
     }, [editor, previewing]);
 
-    const locale = props.locale?.value;
+    // Own-endpoint uploads follow the properties, also when they change later.
+    const uploadUrl = imageUploadMode === "endpoint" ? props.imageUploadUrl.trim() : "";
+    useEffect(() => {
+        if (!editor || !uploadUrl) {
+            return;
+        }
+        registerImageUpload(editor, uploadUrl);
+        return () => editor.unregisterCallback("image");
+    }, [editor, uploadUrl]);
+
+    // Without a Locale property the editor follows the app's language.
+    const locale = props.locale ? props.locale.value : appLocale();
     useEffect(() => {
         if (editor && locale !== undefined) {
             editor.setLocale(locale || null);
@@ -217,6 +236,7 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
                 ready={editor !== null}
                 readOnly={readOnly}
                 canSave={canWriteTemplate(JSONTemplate, loadError)}
+                canExport={!loadError}
                 preview={
                     props.isShowPreview
                         ? {

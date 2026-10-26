@@ -49,7 +49,7 @@ If the object is read-only, the editor opens in preview mode and the Save Templa
 | Editor     | Height                      | Minimum height (CSS length). Unlayer recommends at least 1024 × 700 px.                               |
 | Editor     | Theme                       | Modern or classic, light or dark.                                                                     |
 | Editor     | Display mode                | Email, web page, pop-up or document. All but email may need a paid Unlayer plan.                      |
-| Editor     | Locale                      | Optional expression, eg. `'nl-NL'`.                                                                   |
+| Editor     | Locale                      | Optional expression, eg. `'nl-NL'`. Not set: the app's language (English stays English).              |
 | Editor     | Editor version              | Optional Unlayer version, eg. `latest` or `1.157.0`. Empty loads Unlayer's stable version.            |
 | Editor     | Embed script URL            | Optional location of `embed.js`, eg. a self-hosted copy.                                              |
 | Editor     | Advanced options (JSON)     | Any other [Unlayer option](https://docs.unlayer.com), eg. `{"tools": {"html": {"enabled": false}}}`.  |
@@ -62,7 +62,12 @@ If the object is read-only, the editor opens in preview mode and the Save Templa
 | Images     | Image uploads               | Unlayer storage, own endpoint or disabled (see below).                                                |
 
 Display mode, editor version and advanced options are applied when the editor is created; changing them recreates the
-editor. Locale and merge tags are updated in place.
+editor. Locale, merge tags and the upload URL are updated in place.
+
+While the widget drives the preview (the Preview button is shown, or the object is read-only), Unlayer's own Preview
+button is turned off so the two cannot disagree. Unlayer reports no event when its preview is closed, and its close
+button can only be hidden on a paid plan (custom CSS); closing the preview there leaves the widget's button on "Hide
+Preview" until it is clicked.
 
 ### Merge Tags
 
@@ -72,6 +77,8 @@ Point the Merge tags data source at a list (eg. a microflow returning non-persis
 -   **Value**: text inserted into the design, eg. `'{%' + $currentObject/Name + '%}'` for Mendix email template
     placeholders
 -   **Sample** (optional): value shown while previewing
+
+Tags are keyed by their value, so a value listed twice is offered once.
 
 ### Image Uploads
 
@@ -140,6 +147,12 @@ After creating the template, we can use custom logic to fill in placeholders (if
 For the image below, we used FakeSMTP to receive a test email.
 
 ![Sent Email Example](https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/example.png)
+
+## Building a Release
+
+`npm run build` makes a development package: unminified, with inline source maps, and without the third-party license
+notice. Build every package you ship with `npm run release`, which minifies it and adds `dependencies.txt` (the MIT
+notice for react-email-editor) to the `.mpk`.
 
 ## Issues, Suggestions and Feature Requests
 

@@ -17,6 +17,7 @@ class FakeUnlayer {
     setLocale = jest.fn();
     setMergeTags = jest.fn();
     registerCallback = jest.fn();
+    unregisterCallback = jest.fn();
     private listeners: Record<string, Array<() => void>> = {};
 
     addEventListener(type: string, listener: () => void): void {
@@ -40,6 +41,8 @@ class FakeUnlayer {
 }
 
 let unlayer: FakeUnlayer;
+/** The options the widget last gave react-email-editor. */
+let mockOptions: Record<string, any> | undefined;
 
 jest.mock("react-email-editor", () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -48,7 +51,8 @@ jest.mock("react-email-editor", () => {
         __esModule: true,
         // Unlayer loads its script before it is ready, so onReady is never
         // called during the mount.
-        default: function EmailEditor(props: { onReady: (editor: unknown) => void }) {
+        default: function EmailEditor(props: { onReady: (editor: unknown) => void; options: Record<string, any> }) {
+            mockOptions = props.options;
             useEffect(() => {
                 const timer = setTimeout(() => props.onReady(unlayer));
                 return () => clearTimeout(timer);
@@ -364,5 +368,57 @@ describe("Events", () => {
             json__: JSON.stringify(EDITED)
         });
         expect(JSONTemplate.setValue).not.toHaveBeenCalled();
+    });
+});
+
+describe("Behaviour", () => {
+    it("disables Export HTML while the stored template cannot be read", () => {
+        mount(
+            <EditorWrapper
+                {...props({
+                    JSONTemplate: attribute("{not json"),
+                    isShowExportHtml: true,
+                    exportHTMLAction: saveAction()
+                })}
+            />
+        );
+        expect((screen.getByRole("button", { name: "Export HTML" }) as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it("turns off Unlayer's own preview button only while the widget drives the preview", () => {
+        const { rerender } = mount(<EditorWrapper {...props({ isShowPreview: true })} />);
+        expect(mockOptions?.features?.preview).toBe(false);
+
+        rerender(<EditorWrapper {...props({ isShowPreview: false })} />);
+        expect(mockOptions?.features?.preview).toBeUndefined();
+    });
+
+    it("follows the app's language when no Locale is set", () => {
+        document.documentElement.lang = "nl-NL";
+        try {
+            mount(<EditorWrapper {...props()} />);
+            expect(unlayer.setLocale).toHaveBeenCalledWith("nl-NL");
+        } finally {
+            document.documentElement.lang = "";
+        }
+    });
+
+    it("keeps English when the app runs in English", () => {
+        document.documentElement.lang = "en-GB";
+        try {
+            mount(<EditorWrapper {...props()} />);
+            expect(unlayer.setLocale).toHaveBeenCalledWith(null);
+        } finally {
+            document.documentElement.lang = "";
+        }
+    });
+
+    it("registers and removes own-endpoint uploads as the properties change", () => {
+        const p = props({ imageUploadMode: "endpoint", imageUploadUrl: "rest/images" });
+        const { rerender } = mount(<EditorWrapper {...p} />);
+        expect(unlayer.registerCallback).toHaveBeenCalledWith("image", expect.any(Function));
+
+        rerender(<EditorWrapper {...p} imageUploadUrl="" />);
+        expect(unlayer.unregisterCallback).toHaveBeenCalledWith("image");
     });
 });

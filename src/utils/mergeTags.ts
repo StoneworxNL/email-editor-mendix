@@ -19,14 +19,16 @@ export function buildMergeTags(
         return undefined;
     }
     const tags: MergeTags = {};
-    source.items.forEach((item, index) => {
+    // Keyed by value, so a tag keeps its key when the list is sorted or filtered;
+    // a value listed twice is offered once.
+    source.items.forEach(item => {
         const tagName = name.get(item).value;
         const tagValue = value.get(item).value;
         if (!tagName || !tagValue) {
             return;
         }
         const tagSample = sample?.get(item).value;
-        tags[`tag_${index}`] = tagSample
+        tags[tagValue] = tagSample
             ? { name: tagName, value: tagValue, sample: tagSample }
             : { name: tagName, value: tagValue };
     });
