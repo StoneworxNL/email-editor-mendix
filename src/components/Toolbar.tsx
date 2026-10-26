@@ -1,6 +1,5 @@
 import React, { ReactElement } from "react";
 import { ActionValue, Option } from "mendix";
-import classNames from "classnames";
 
 /**
  * The action arguments, exactly as ReactEmailEditor.xml generates them into
@@ -15,30 +14,30 @@ export interface ToolbarButton {
     onClick: () => void;
 }
 
+export interface PreviewToggle {
+    /** Caption for the current state: "Show Preview" while editing, "Hide Preview" while previewing. */
+    caption: string;
+    previewing: boolean;
+    onClick: () => void;
+}
+
 export interface ToolbarProps {
     /** False until the editor has loaded; nothing can be exported before that. */
     ready: boolean;
     readOnly: boolean;
     /** False while the template attribute is loading, unavailable or could not be read. */
     canSave: boolean;
+    preview?: PreviewToggle;
     exportHtml?: ToolbarButton;
     saveTemplate?: ToolbarButton;
 }
 
-function ActionButton({
-    button,
-    disabled,
-    className
-}: {
-    button: ToolbarButton;
-    disabled: boolean;
-    className?: string;
-}): ReactElement {
+function ActionButton({ button, disabled }: { button: ToolbarButton; disabled: boolean }): ReactElement {
     const busy = button.action.isExecuting;
     return (
         <button
             type="button"
-            className={classNames("btn mx-button btn-default", className)}
+            className="btn mx-button btn-default"
             disabled={disabled || busy || !button.action.canExecute}
             aria-busy={busy}
             onClick={button.onClick}
@@ -48,22 +47,36 @@ function ActionButton({
     );
 }
 
-export function Toolbar({ ready, readOnly, canSave, exportHtml, saveTemplate }: ToolbarProps): ReactElement | null {
-    // Saving from a read-only editor would store nothing the user could change.
+export function Toolbar({
+    ready,
+    readOnly,
+    canSave,
+    preview,
+    exportHtml,
+    saveTemplate
+}: ToolbarProps): ReactElement | null {
+    // A read-only editor always previews, and saving from it would store nothing
+    // the user could change.
+    const showPreview = preview && !readOnly;
     const showSave = saveTemplate && !readOnly;
-    if (!exportHtml && !showSave) {
+    if (!showPreview && !exportHtml && !showSave) {
         return null;
     }
     return (
         <div className="react-email-editor-toolbar spacing-inner-bottom-medium">
-            {exportHtml && <ActionButton button={exportHtml} disabled={!ready} />}
-            {showSave && (
-                <ActionButton
-                    button={saveTemplate}
-                    disabled={!ready || !canSave}
-                    className={exportHtml ? "spacing-outer-left-medium" : undefined}
-                />
+            {showPreview && (
+                <button
+                    type="button"
+                    className="btn mx-button btn-default"
+                    disabled={!ready}
+                    aria-pressed={preview.previewing}
+                    onClick={preview.onClick}
+                >
+                    {preview.caption}
+                </button>
             )}
+            {exportHtml && <ActionButton button={exportHtml} disabled={!ready} />}
+            {showSave && <ActionButton button={saveTemplate} disabled={!ready || !canSave} />}
         </div>
     );
 }

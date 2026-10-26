@@ -3,7 +3,7 @@ import { ActionValue, ValueStatus } from "mendix";
 import EmailEditor, { EditorRef } from "react-email-editor";
 import classNames from "classnames";
 
-import { ReactEmailEditorContainerProps } from "../../typings/ReactEmailEditorProps";
+import { DisplayModeEnum, ReactEmailEditorContainerProps } from "../../typings/ReactEmailEditorProps";
 import { buildOptions, Editor, parseAdvancedOptions, parseDesign } from "../utils/editorOptions";
 import { registerImageUpload } from "../utils/imageUpload";
 import { buildMergeTags } from "../utils/mergeTags";
@@ -15,9 +15,18 @@ const SAVE_ON_CHANGE_DELAY_MS = 500;
 
 type Exported = { html: string; json: string };
 
+/** Run a Mendix action if it is set and may run now. */
+function execute(action: ActionValue | undefined): void;
+function execute(action: ActionValue<TemplateActionArgs> | undefined, args: TemplateActionArgs): void;
+function execute(action: ActionValue<any> | undefined, args?: TemplateActionArgs): void {
+    if (action && action.canExecute && !action.isExecuting) {
+        action.execute(args);
+    }
+}
+
 export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactElement {
-    const { JSONTemplate, projectId, theme, imageUploadMode, advancedOptions } = props;
-    const emailEditorRef = useRef<EditorRef>(null);
+    const { JSONTemplate, projectId, theme, imageUploadMode, advancedOptions, displayMode, editorVersion } = props;
+    const emailEditorRef = useRef<EditorRef<DisplayModeEnum>>(null);
     const [editor, setEditor] = useState<Editor | null>(null);
     const [loadError, setLoadError] = useState<string>();
     // Read by the save-on-change timer, which can fire before the render that
@@ -49,8 +58,8 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         [advancedOptions]
     );
     const options = useMemo(
-        () => buildOptions(advanced, projectId, theme, imageUploadMode),
-        [advanced, projectId, theme, imageUploadMode]
+        () => buildOptions(advanced, projectId, theme, imageUploadMode, displayMode, editorVersion),
+        [advanced, projectId, theme, imageUploadMode, displayMode, editorVersion]
     );
 
     const exportDesign = useCallback((unlayer: Editor): Promise<Exported> => {
@@ -84,18 +93,28 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
 
             unlayer.addEventListener("design:updated", () => {
                 const current = propsRef.current;
-                if (!current.saveOnChange || !canWriteTemplate(current.JSONTemplate, loadErrorRef.current)) {
+                const write = current.saveOnChange && canWriteTemplate(current.JSONTemplate, loadErrorRef.current);
+                if (!write && !current.onDesignChangeAction) {
                     return;
                 }
                 clearTimeout(saveTimer.current);
                 saveTimer.current = setTimeout(() => {
-                    exportDesign(unlayer).then(writeAttributes);
+                    exportDesign(unlayer).then(exported => {
+                        const latest = propsRef.current;
+                        if (latest.saveOnChange) {
+                            writeAttributes(exported);
+                        }
+                        execute(latest.onDesignChangeAction, { html__: exported.html, json__: exported.json });
+                    });
                 }, SAVE_ON_CHANGE_DELAY_MS);
             });
+
+            unlayer.addEventListener("design:loaded", () => execute(propsRef.current.onDesignLoadAction));
 
             // A new editor starts blank, so whatever it had loaded is gone.
             syncedJson.current = undefined;
             setEditor(unlayer);
+            execute(propsRef.current.onReadyAction);
         },
         [exportDesign, writeAttributes]
     );
@@ -130,21 +149,41 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         }
     }, [editor, jsonStatus, jsonValue, reportLoadError]);
 
+    // Whether the preview is showing, because of the Preview button or because
+    // the editor is read-only.
+    const [previewing, setPreviewing] = useState(false);
+    const previewDevice = props.previewDevice ?? "desktop";
+
     // Read-only: show the design as a preview rather than an editor.
-    const previewShown = useRef(false);
+    const previewShownForReadOnly = useRef(false);
     useEffect(() => {
         if (!editor) {
-            previewShown.current = false;
+            previewShownForReadOnly.current = false;
+            setPreviewing(false);
             return;
         }
-        if (readOnly && !previewShown.current) {
-            editor.showPreview("desktop");
-            previewShown.current = true;
-        } else if (!readOnly && previewShown.current) {
+        if (readOnly && !previewShownForReadOnly.current) {
+            editor.showPreview(previewDevice);
+            previewShownForReadOnly.current = true;
+            setPreviewing(true);
+        } else if (!readOnly && previewShownForReadOnly.current) {
             editor.hidePreview();
-            previewShown.current = false;
+            previewShownForReadOnly.current = false;
+            setPreviewing(false);
         }
-    }, [editor, readOnly]);
+    }, [editor, readOnly, previewDevice]);
+
+    const togglePreview = useCallback(() => {
+        if (!editor) {
+            return;
+        }
+        if (previewing) {
+            editor.hidePreview();
+        } else {
+            editor.showPreview(previewDevice);
+        }
+        setPreviewing(!previewing);
+    }, [editor, previewing, previewDevice]);
 
     const locale = props.locale?.value;
     useEffect(() => {
@@ -175,9 +214,7 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
             if (write && !writeAttributes(exported)) {
                 return;
             }
-            if (action.canExecute && !action.isExecuting) {
-                action.execute({ html__: exported.html, json__: exported.json });
-            }
+            execute(action, { html__: exported.html, json__: exported.json });
         },
         [editor, exportDesign, writeAttributes]
     );
@@ -190,6 +227,17 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
                 ready={editor !== null}
                 readOnly={readOnly}
                 canSave={canWriteTemplate(JSONTemplate, loadError)}
+                preview={
+                    props.isShowPreview
+                        ? {
+                              caption: previewing
+                                  ? props.hidePreviewCaption?.value || "Hide Preview"
+                                  : props.showPreviewCaption?.value || "Show Preview",
+                              previewing,
+                              onClick: togglePreview
+                          }
+                        : undefined
+                }
                 exportHtml={
                     props.isShowExportHtml && props.exportHTMLAction
                         ? {
@@ -219,6 +267,7 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
                 onReady={onReady}
                 minHeight={props.editorHeight || "700px"}
                 options={options}
+                scriptUrl={props.scriptUrl?.trim() || undefined}
             />
         </div>
     );

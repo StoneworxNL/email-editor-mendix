@@ -9,3 +9,7 @@ Place your custom CSS here
 /* .react-email-editor-div .blockbuilder-branding {
     display: none !important;
 } */
+
+.react-email-editor-toolbar .btn + .btn {
+    margin-left: 8px;
+}

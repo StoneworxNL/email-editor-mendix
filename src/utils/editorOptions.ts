@@ -1,8 +1,8 @@
 import { EditorRef, EmailEditorProps } from "react-email-editor";
-import { ImageUploadModeEnum, ThemeEnum } from "../../typings/ReactEmailEditorProps";
+import { DisplayModeEnum, ImageUploadModeEnum, ThemeEnum } from "../../typings/ReactEmailEditorProps";
 
-export type Editor = NonNullable<EditorRef["editor"]>;
-export type EditorOptions = NonNullable<EmailEditorProps["options"]>;
+export type Editor = NonNullable<EditorRef<DisplayModeEnum>["editor"]>;
+export type EditorOptions = NonNullable<EmailEditorProps<DisplayModeEnum>["options"]>;
 
 /**
  * Parse the "Advanced options (JSON)" property. Returns an error message instead
@@ -32,9 +32,15 @@ export function buildOptions(
     advanced: EditorOptions,
     projectId: number,
     theme: ThemeEnum,
-    imageUploadMode: ImageUploadModeEnum
+    imageUploadMode: ImageUploadModeEnum,
+    displayMode: DisplayModeEnum = "email",
+    version = ""
 ): EditorOptions {
+    // Display mode and version come before the advanced options, so apps that
+    // already set them there keep what they had.
     const options: EditorOptions = {
+        displayMode,
+        ...(version.trim() ? { version: version.trim() } : {}),
         ...advanced,
         appearance: { ...advanced.appearance, theme }
     };

@@ -20,7 +20,9 @@
             <propertyGroup caption="Data">
                 <property key="JSONTemplate" type="attribute">
                     <caption>JSON Template (String)</caption>
-                    <description>JSON design (as a string), loaded into the editor and written back when the design is saved.</description>
+                    <description>
+                        JSON design (as a string), loaded into the editor and written back when the design is saved.
+                    </description>
                     <attributeTypes>
                         <attributeType name="String" />
                     </attributeTypes>
@@ -34,17 +36,25 @@
                 </property>
                 <property key="saveOnChange" type="boolean" defaultValue="false">
                     <caption>Write changes to attributes</caption>
-                    <description>Write the design (and HTML) to the attributes while the user edits, so a regular Save button on the page stores them. No action is executed.</description>
+                    <description>
+                        Write the design (and HTML) to the attributes while the user edits, so a regular Save button on
+                        the page stores them. No action is executed.
+                    </description>
                 </property>
             </propertyGroup>
             <propertyGroup caption="Editor">
                 <property key="projectId" type="integer" defaultValue="0">
                     <caption>Unlayer project ID</caption>
-                    <description>Project ID from the Unlayer Developer Console. Required for production use; 0 leaves it unset.</description>
+                    <description>
+                        Project ID from the Unlayer Developer Console. Required for production use; 0 leaves it unset.
+                    </description>
                 </property>
                 <property key="editorHeight" type="string" defaultValue="700px">
                     <caption>Height</caption>
-                    <description>Minimum height of the editor, as a CSS length (for example 700px or 80vh). Unlayer recommends at least 700px.</description>
+                    <description>
+                        Minimum height of the editor, as a CSS length (for example 700px or 80vh). Unlayer recommends at
+                        least 700px.
+                    </description>
                 </property>
                 <property key="theme" type="enumeration" defaultValue="modern_light">
                     <caption>Theme</caption>
@@ -56,18 +66,91 @@
                         <enumerationValue key="classic_dark">Classic dark</enumerationValue>
                     </enumerationValues>
                 </property>
+                <property key="displayMode" type="enumeration" defaultValue="email">
+                    <caption>Display mode</caption>
+                    <description>
+                        What the editor builds: an email, a web page, a pop-up or a document. Web pages, pop-ups and
+                        documents may need a paid Unlayer plan. A displayMode in the advanced options takes precedence.
+                    </description>
+                    <enumerationValues>
+                        <enumerationValue key="email">Email</enumerationValue>
+                        <enumerationValue key="web">Web page</enumerationValue>
+                        <enumerationValue key="popup">Pop-up</enumerationValue>
+                        <enumerationValue key="document">Document</enumerationValue>
+                    </enumerationValues>
+                </property>
                 <property key="locale" type="expression" required="false">
                     <caption>Locale</caption>
-                    <description>Optional. Editor language, for example en-US, nl-NL or pt-PT. Leave empty for English.</description>
+                    <description>
+                        Optional. Editor language, for example en-US, nl-NL or pt-PT. Leave empty for English.
+                    </description>
                     <returnType type="String" />
+                </property>
+                <property key="editorVersion" type="string" required="false">
+                    <caption>Editor version</caption>
+                    <description>
+                        Optional. Unlayer editor version to load, for example latest or 1.157.0. Leave empty for
+                        Unlayer's stable version. A version in the advanced options takes precedence.
+                    </description>
+                </property>
+                <property key="scriptUrl" type="string" required="false">
+                    <caption>Embed script URL</caption>
+                    <description>
+                        Optional. Where to load Unlayer's embed.js from, for example a self-hosted copy. Leave empty for
+                        https://editor.unlayer.com/embed.js.
+                    </description>
                 </property>
                 <property key="advancedOptions" type="string" multiline="true" required="false">
                     <caption>Advanced options (JSON)</caption>
-                    <description>Optional. Extra Unlayer editor options as a JSON object, for example {"tools": {"html": {"enabled": false}}, "features": {"stockImages": false}}. See https://docs.unlayer.com.</description>
+                    <description>
+                        Optional. Extra Unlayer editor options as a JSON object, for example {"tools": {"html":
+                        {"enabled": false}}, "features": {"stockImages": false}}. See https://docs.unlayer.com.
+                    </description>
                 </property>
+            </propertyGroup>
+            <propertyGroup caption="Editability">
+                <systemProperty key="Editability" />
+            </propertyGroup>
+            <propertyGroup caption="Visibility">
+                <systemProperty key="Visibility" />
             </propertyGroup>
         </propertyGroup>
         <propertyGroup caption="Actions">
+            <propertyGroup caption="Preview">
+                <property key="isShowPreview" type="boolean" defaultValue="true">
+                    <caption>Show Preview Button</caption>
+                    <description>
+                        Show or hide the button that switches between editing and previewing the design. It is hidden
+                        when the editor is read-only, which always previews.
+                    </description>
+                </property>
+                <property key="previewDevice" type="enumeration" defaultValue="desktop">
+                    <caption>Preview device</caption>
+                    <description>
+                        Device the preview starts on, also when the editor is read-only. The preview itself lets the
+                        user switch devices.
+                    </description>
+                    <enumerationValues>
+                        <enumerationValue key="desktop">Desktop</enumerationValue>
+                        <enumerationValue key="tablet">Tablet</enumerationValue>
+                        <enumerationValue key="mobile">Mobile</enumerationValue>
+                    </enumerationValues>
+                </property>
+                <property key="showPreviewCaption" type="textTemplate" required="false">
+                    <caption>Show caption</caption>
+                    <description>Caption of the button while editing.</description>
+                    <translations>
+                        <translation lang="en_US">Show Preview</translation>
+                    </translations>
+                </property>
+                <property key="hidePreviewCaption" type="textTemplate" required="false">
+                    <caption>Hide caption</caption>
+                    <description>Caption of the button while previewing.</description>
+                    <translations>
+                        <translation lang="en_US">Hide Preview</translation>
+                    </translations>
+                </property>
+            </propertyGroup>
             <propertyGroup caption="Export HTML">
                 <property key="isShowExportHtml" type="boolean" defaultValue="true">
                     <caption>Show Export HTML Button</caption>
@@ -103,7 +186,36 @@
                 </property>
                 <property key="saveTemplateAction" type="action" required="false">
                     <caption>Save JSON Template</caption>
-                    <description>Action to Save JSON template as a string. The attributes are written before it runs.</description>
+                    <description>
+                        Action to Save JSON template as a string. The attributes are written before it runs.
+                    </description>
+                    <actionVariables>
+                        <actionVariable key="html__" type="String" caption="HTML of Email Template" />
+                        <actionVariable key="json__" type="String" caption="JSON Design of Email Template" />
+                    </actionVariables>
+                </property>
+            </propertyGroup>
+        </propertyGroup>
+        <propertyGroup caption="Events">
+            <propertyGroup caption="Events">
+                <property key="onReadyAction" type="action" required="false">
+                    <caption>On ready</caption>
+                    <description>
+                        Runs once the editor has loaded and can be used, and again whenever it is recreated.
+                    </description>
+                </property>
+                <property key="onDesignLoadAction" type="action" required="false">
+                    <caption>On design loaded</caption>
+                    <description>
+                        Runs after a design from the JSON Template attribute has been loaded into the editor.
+                    </description>
+                </property>
+                <property key="onDesignChangeAction" type="action" required="false">
+                    <caption>On change</caption>
+                    <description>
+                        Runs shortly after the user stops editing. When Write changes to attributes is on, the
+                        attributes are written first.
+                    </description>
                     <actionVariables>
                         <actionVariable key="html__" type="String" caption="HTML of Email Template" />
                         <actionVariable key="json__" type="String" caption="JSON Design of Email Template" />
@@ -115,7 +227,10 @@
             <propertyGroup caption="Merge tags">
                 <property key="mergeTags" type="datasource" isList="true" required="false">
                     <caption>Merge tags</caption>
-                    <description>Optional. Placeholders offered in the editor's merge tag menu, for example Mendix email template placeholders such as {%Name%}.</description>
+                    <description>
+                        Optional. Placeholders offered in the editor's merge tag menu, for example Mendix email template
+                        placeholders such as {%Name%}.
+                    </description>
                 </property>
                 <property key="mergeTagName" type="expression" dataSource="mergeTags" required="false">
                     <caption>Name</caption>
@@ -124,7 +239,9 @@
                 </property>
                 <property key="mergeTagValue" type="expression" dataSource="mergeTags" required="false">
                     <caption>Value</caption>
-                    <description>Text inserted into the design, for example '{%' + $currentObject/Name + '%}'.</description>
+                    <description>
+                        Text inserted into the design, for example '{%' + $currentObject/Name + '%}'.
+                    </description>
                     <returnType type="String" />
                 </property>
                 <property key="mergeTagSample" type="expression" dataSource="mergeTags" required="false">
@@ -138,7 +255,9 @@
             <propertyGroup caption="Image uploads">
                 <property key="imageUploadMode" type="enumeration" defaultValue="unlayer">
                     <caption>Image uploads</caption>
-                    <description>Where images that users upload are stored. Unlayer's storage is outside this application.</description>
+                    <description>
+                        Where images that users upload are stored. Unlayer's storage is outside this application.
+                    </description>
                     <enumerationValues>
                         <enumerationValue key="unlayer">Unlayer storage</enumerationValue>
                         <enumerationValue key="endpoint">Own endpoint</enumerationValue>
@@ -147,7 +266,10 @@
                 </property>
                 <property key="imageUploadUrl" type="string" required="false">
                     <caption>Upload URL</caption>
-                    <description>Endpoint that receives the image as multipart/form-data (part "file") and responds with JSON {"url": "..."}, for example rest/emaileditor/v1/images.</description>
+                    <description>
+                        Endpoint that receives the image as multipart/form-data (part "file") and responds with JSON
+                        {"url": "..."}, for example rest/emaileditor/v1/images.
+                    </description>
                 </property>
             </propertyGroup>
         </propertyGroup>
