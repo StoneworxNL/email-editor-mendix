@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import { ReactElement } from "react";
 import { EditorWrapper } from "./components/EditorWrapper";
 
 import { ReactEmailEditorContainerProps } from "../typings/ReactEmailEditorProps";

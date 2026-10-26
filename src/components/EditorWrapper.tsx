@@ -1,4 +1,4 @@
-import React, { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ReactElement, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ActionValue, ValueStatus } from "mendix";
 import EmailEditor, { EditorRef } from "react-email-editor";
 import classNames from "classnames";
@@ -27,31 +27,6 @@ function execute(action: ActionValue<any> | undefined, args?: TemplateActionArgs
 export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactElement {
     const { JSONTemplate, projectId, theme, imageUploadMode, advancedOptions, displayMode, editorVersion } = props;
     const emailEditorRef = useRef<EditorRef<DisplayModeEnum>>(null);
-    const [editor, setEditor] = useState<Editor | null>(null);
-    const [loadError, setLoadError] = useState<string>();
-    // Read by the save-on-change timer, which can fire before the render that
-    // follows setLoadError.
-    const loadErrorRef = useRef<string>();
-    const reportLoadError = useCallback((message: string | undefined) => {
-        loadErrorRef.current = message;
-        setLoadError(message);
-    }, []);
-
-    // Unlayer calls handlers registered once per editor; they read the latest
-    // props through this ref instead of the render they were created in.
-    const propsRef = useRef(props);
-    propsRef.current = props;
-
-    // The last design string the editor loaded or produced. When the attribute
-    // changes to this value (because we wrote it) there is nothing to reload, and
-    // reloading would throw away the user's undo history and selection.
-    const syncedJson = useRef<string>();
-
-    const saveTimer = useRef<ReturnType<typeof setTimeout>>();
-    // The editor is destroyed on unmount; a pending save would call into it.
-    useEffect(() => () => clearTimeout(saveTimer.current), []);
-
-    const readOnly = JSONTemplate.readOnly;
 
     const { options: advanced, error: optionsError } = useMemo(
         () => parseAdvancedOptions(advancedOptions),
@@ -61,6 +36,43 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         () => buildOptions(advanced, projectId, theme, imageUploadMode, displayMode, editorVersion),
         [advanced, projectId, theme, imageUploadMode, displayMode, editorVersion]
     );
+
+    // The editor is recreated when its options change. Remember which options
+    // the ready editor was made with, so the old one is forgotten at once.
+    const [ready, setReady] = useState<{ editor: Editor; options: typeof options } | null>(null);
+    const editor = ready?.options === options ? ready.editor : null;
+
+    // An empty value never clears the editor (see below), so it is no error either.
+    const jsonStatus = JSONTemplate.status;
+    const jsonValue = JSONTemplate.value ?? "";
+    const parsed = useMemo(
+        () => (jsonStatus === ValueStatus.Available && jsonValue !== "" ? parseDesign(jsonValue) : {}),
+        [jsonStatus, jsonValue]
+    );
+    const loadError = parsed.error;
+
+    // Unlayer calls handlers registered once per editor, and the save-on-change
+    // timer can fire before the next render; both read the latest values
+    // through these refs instead of the render they were created in.
+    const propsRef = useRef(props);
+    const optionsRef = useRef(options);
+    const loadErrorRef = useRef(loadError);
+    useLayoutEffect(() => {
+        propsRef.current = props;
+        optionsRef.current = options;
+        loadErrorRef.current = loadError;
+    });
+
+    // The last design string the editor loaded or produced. When the attribute
+    // changes to this value (because we wrote it) there is nothing to reload, and
+    // reloading would throw away the user's undo history and selection.
+    const syncedJson = useRef<string | undefined>(undefined);
+
+    const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    // The editor is destroyed on unmount; a pending save would call into it.
+    useEffect(() => () => clearTimeout(saveTimer.current), []);
+
+    const readOnly = JSONTemplate.readOnly;
 
     const exportDesign = useCallback((unlayer: Editor): Promise<Exported> => {
         return new Promise(resolve => {
@@ -113,77 +125,55 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
 
             // A new editor starts blank, so whatever it had loaded is gone.
             syncedJson.current = undefined;
-            setEditor(unlayer);
+            setReady({ editor: unlayer, options: optionsRef.current });
             execute(propsRef.current.onReadyAction);
         },
         [exportDesign, writeAttributes]
     );
 
-    // The editor is recreated when its options change; forget the old one.
-    useEffect(() => setEditor(null), [options]);
-
     // Load the design from the attribute, once the editor and the value are ready.
-    const jsonStatus = JSONTemplate.status;
-    const jsonValue = JSONTemplate.value ?? "";
     useEffect(() => {
-        if (!editor || jsonStatus !== ValueStatus.Available) {
-            return;
-        }
         // An empty value never clears the editor. It is what a rollback of a new
         // object produces, for instance when a pop-up opened by the save action is
         // closed, and clearing would throw away everything the user made.
-        if (jsonValue === "") {
-            reportLoadError(undefined);
+        if (!editor || jsonStatus !== ValueStatus.Available || jsonValue === "") {
             return;
         }
         if (jsonValue === syncedJson.current) {
             return;
         }
         syncedJson.current = jsonValue;
-        const { design, error } = parseDesign(jsonValue);
-        reportLoadError(error);
-        if (design) {
-            editor.loadDesign(design as Parameters<Editor["loadDesign"]>[0]);
+        if (parsed.design) {
+            editor.loadDesign(parsed.design as Parameters<Editor["loadDesign"]>[0]);
         } else {
-            console.error(`ReactEmailEditor: ${error}`);
+            console.error(`ReactEmailEditor: ${parsed.error}`);
         }
-    }, [editor, jsonStatus, jsonValue, reportLoadError]);
+    }, [editor, jsonStatus, jsonValue, parsed]);
 
-    // Whether the preview is showing, because of the Preview button or because
-    // the editor is read-only.
-    const [previewing, setPreviewing] = useState(false);
+    // Whether the preview is showing: always when the editor is read-only,
+    // otherwise when the user switched it on for this editor.
+    const [previewToggledFor, setPreviewToggledFor] = useState<Editor | null>(null);
+    const previewing = editor !== null && (readOnly || previewToggledFor === editor);
     const previewDevice = props.previewDevice ?? "desktop";
 
-    // Read-only: show the design as a preview rather than an editor.
-    const previewShownForReadOnly = useRef(false);
+    // Show or hide Unlayer's preview to match. A new editor starts without one.
+    const previewShownIn = useRef<Editor | null>(null);
     useEffect(() => {
-        if (!editor) {
-            previewShownForReadOnly.current = false;
-            setPreviewing(false);
-            return;
-        }
-        if (readOnly && !previewShownForReadOnly.current) {
-            editor.showPreview(previewDevice);
-            previewShownForReadOnly.current = true;
-            setPreviewing(true);
-        } else if (!readOnly && previewShownForReadOnly.current) {
-            editor.hidePreview();
-            previewShownForReadOnly.current = false;
-            setPreviewing(false);
-        }
-    }, [editor, readOnly, previewDevice]);
-
-    const togglePreview = useCallback(() => {
         if (!editor) {
             return;
         }
         if (previewing) {
-            editor.hidePreview();
-        } else {
             editor.showPreview(previewDevice);
+            previewShownIn.current = editor;
+        } else if (previewShownIn.current === editor) {
+            editor.hidePreview();
+            previewShownIn.current = null;
         }
-        setPreviewing(!previewing);
     }, [editor, previewing, previewDevice]);
+
+    const togglePreview = useCallback(() => {
+        setPreviewToggledFor(previewing ? null : editor);
+    }, [editor, previewing]);
 
     const locale = props.locale?.value;
     useEffect(() => {

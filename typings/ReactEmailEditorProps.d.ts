@@ -3,8 +3,8 @@
  * WARNING: All changes made to this file will be overwritten
  * @author Mendix Widgets Framework Team
  */
+import { ActionValue, DynamicValue, EditableValue, ListExpressionValue, ListValue, Option } from "mendix";
 import { CSSProperties } from "react";
-import { ActionValue, DynamicValue, EditableValue, ListValue, Option, ListExpressionValue } from "mendix";
 
 export type ThemeEnum = "modern_light" | "modern_dark" | "classic_light" | "classic_dark";
 

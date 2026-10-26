@@ -1,4 +1,4 @@
-import React from "react";
+import { ReactElement } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { ActionValue, EditableValue, ValueStatus } from "mendix";
 
@@ -104,7 +104,7 @@ function saveButton(): HTMLButtonElement {
 }
 
 /** Render the widget and let the editor become ready. */
-function mount(element: React.ReactElement): ReturnType<typeof render> {
+function mount(element: ReactElement): ReturnType<typeof render> {
     const result = render(element);
     act(() => {
         jest.runOnlyPendingTimers();

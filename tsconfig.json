@@ -1,15 +1,7 @@
 {
   "extends": "@mendix/pluggable-widgets-tools/configs/tsconfig.base",
   "compilerOptions": {
-    "baseUrl": "./",
-    "jsx": "react",
-    "lib": [
-      "dom",
-      "esnext"
-    ],
-    "module": "esnext",
-    "esModuleInterop": true,
-    "jsxFactory": "React.createElement"
+    "baseUrl": "./"
   },
   "exclude": [
     "node_modules"
