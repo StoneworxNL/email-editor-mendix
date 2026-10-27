@@ -34,7 +34,8 @@ export function buildOptions(
     theme: ThemeEnum,
     imageUploadMode: ImageUploadModeEnum,
     displayMode: DisplayModeEnum = "email",
-    version = ""
+    version = "",
+    controlsPreview = false
 ): EditorOptions {
     // Display mode and version come before the advanced options, so apps that
     // already set them there keep what they had.
@@ -50,8 +51,19 @@ export function buildOptions(
     if (imageUploadMode === "disabled") {
         options.features = { ...advanced.features, userUploads: false };
     }
+    if (controlsPreview) {
+        options.features = { ...options.features, preview: false };
+        const own = advanced.customCSS ?? [];
+        options.customCSS = [...(Array.isArray(own) ? own : [own]), HIDE_PREVIEW_CONTROLS_CSS];
+    }
     return options;
 }
+
+/**
+ * Unlayer tells nobody when its own preview button or the preview's close
+ * button is used, so the widget hides them while it drives the preview.
+ */
+export const HIDE_PREVIEW_CONTROLS_CSS = "#close-preview, .toolbar-button:has(.fa-eye) { display: none !important; }";
 
 export type ParsedDesign = { design?: object; error?: string };
 

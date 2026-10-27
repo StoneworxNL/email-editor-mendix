@@ -27,6 +27,8 @@ export interface ToolbarProps {
     readOnly: boolean;
     /** False while the template attribute is loading, unavailable or could not be read. */
     canSave: boolean;
+    /** False when the stored template could not be read: the editor holds something else. */
+    canExport: boolean;
     preview?: PreviewToggle;
     exportHtml?: ToolbarButton;
     saveTemplate?: ToolbarButton;
@@ -51,6 +53,7 @@ export function Toolbar({
     ready,
     readOnly,
     canSave,
+    canExport,
     preview,
     exportHtml,
     saveTemplate
@@ -75,7 +78,7 @@ export function Toolbar({
                     {preview.caption}
                 </button>
             )}
-            {exportHtml && <ActionButton button={exportHtml} disabled={!ready} />}
+            {exportHtml && <ActionButton button={exportHtml} disabled={!ready || !canExport} />}
             {showSave && <ActionButton button={saveTemplate} disabled={!ready || !canSave} />}
         </div>
     );
