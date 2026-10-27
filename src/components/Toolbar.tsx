@@ -1,55 +1,82 @@
-import React, { ReactElement } from "react";
-import { ActionValue, EditableValue } from "mendix";
-import { EditorRef } from "react-email-editor";
+import { ReactElement } from "react";
+import { ActionValue, Option } from "mendix";
+
+/**
+ * The action arguments, exactly as ReactEmailEditor.xml generates them into
+ * typings/ReactEmailEditorProps.d.ts. Spelling them out once keeps this file and
+ * the generated props from drifting apart.
+ */
+export type TemplateActionArgs = { html__: Option<string>; json__: Option<string> };
+
+export interface ToolbarButton {
+    caption: string;
+    action: ActionValue<TemplateActionArgs>;
+    onClick: () => void;
+}
+
+export interface PreviewToggle {
+    /** Caption for the current state: "Show Preview" while editing, "Hide Preview" while previewing. */
+    caption: string;
+    previewing: boolean;
+    onClick: () => void;
+}
 
 export interface ToolbarProps {
-    HTMLBody?: EditableValue<string>;
-    JSONTemplate?: EditableValue<string>;
-    exportHTMLAction?: ActionValue;
-    saveTemplateAction?: ActionValue;
-    emailRef: React.RefObject<EditorRef | null>;
+    /** False until the editor has loaded; nothing can be exported before that. */
+    ready: boolean;
+    readOnly: boolean;
+    /** False while the template attribute is loading, unavailable or could not be read. */
+    canSave: boolean;
+    preview?: PreviewToggle;
+    exportHtml?: ToolbarButton;
+    saveTemplate?: ToolbarButton;
+}
+
+function ActionButton({ button, disabled }: { button: ToolbarButton; disabled: boolean }): ReactElement {
+    const busy = button.action.isExecuting;
+    return (
+        <button
+            type="button"
+            className="btn mx-button btn-default"
+            disabled={disabled || busy || !button.action.canExecute}
+            aria-busy={busy}
+            onClick={button.onClick}
+        >
+            {button.caption}
+        </button>
+    );
 }
 
 export function Toolbar({
-    HTMLBody,
-    JSONTemplate,
-    exportHTMLAction,
-    saveTemplateAction,
-    emailRef
-}: ToolbarProps): ReactElement {
-    const exportAction = (action: ActionValue) => {
-        const unlayer = emailRef.current?.editor;
-        unlayer?.exportHtml((data: any) => {
-            const { design, html } = data;
-
-            // ActionValue is used to represent actions, like the On click property of an action button. For any action except Do nothing, your component will receive a value adhering to the following interface. For Do nothing it will receive undefined. The ActionValue prop appears like this:
-            if (action && action.canExecute && !action.isExecuting) {
-                if (HTMLBody && HTMLBody.status === "available") {
-                    HTMLBody.setValue(html);
-                    if (JSONTemplate && JSONTemplate.status === "available")
-                        JSONTemplate.setValue(JSON.stringify(design));
-                    action.execute();
-                }
-            }
-        });
-    };
-
+    ready,
+    readOnly,
+    canSave,
+    preview,
+    exportHtml,
+    saveTemplate
+}: ToolbarProps): ReactElement | null {
+    // A read-only editor always previews, and saving from it would store nothing
+    // the user could change.
+    const showPreview = preview && !readOnly;
+    const showSave = saveTemplate && !readOnly;
+    if (!showPreview && !exportHtml && !showSave) {
+        return null;
+    }
     return (
-        <div className="spacing-inner-bottom-medium">
-            {exportHTMLAction && (
-                <button className="btn mx-button btn-default" onClick={() => exportAction(exportHTMLAction)}>
-                    Export HTML
-                </button>
-            )}
-
-            {saveTemplateAction && (
+        <div className="react-email-editor-toolbar spacing-inner-bottom-medium">
+            {showPreview && (
                 <button
-                    className="btn mx-button btn-default spacing-outer-left-medium"
-                    onClick={() => exportAction(saveTemplateAction)}
+                    type="button"
+                    className="btn mx-button btn-default"
+                    disabled={!ready}
+                    aria-pressed={preview.previewing}
+                    onClick={preview.onClick}
                 >
-                    Save Template
+                    {preview.caption}
                 </button>
             )}
+            {exportHtml && <ActionButton button={exportHtml} disabled={!ready} />}
+            {showSave && <ActionButton button={saveTemplate} disabled={!ready || !canSave} />}
         </div>
     );
 }

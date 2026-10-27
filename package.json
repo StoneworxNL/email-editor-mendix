@@ -1,12 +1,12 @@
 {
   "name": "reactemaileditor",
   "widgetName": "ReactEmailEditor",
-  "version": "1.0.1",
+  "version": "1.2.1",
   "description": "React Email Editor based on Unlayer's wrapper component available at https://github.com/unlayer/react-email-editor",
   "copyright": "© JL 2025",
   "author": "Stoneworx",
   "engines": {
-    "node": ">=16"
+    "node": "^22.18.0"
   },
   "license": "MIT",
   "config": {
@@ -21,30 +21,43 @@
     "build": "pluggable-widgets-tools build:web",
     "lint": "pluggable-widgets-tools lint",
     "lint:fix": "pluggable-widgets-tools lint:fix",
+    "test": "pluggable-widgets-tools test:unit:web",
     "prerelease": "npm run lint",
     "release": "pluggable-widgets-tools release:web"
   },
   "devDependencies": {
-    "@mendix/pluggable-widgets-tools": "^11.8.1",
-    "@types/big.js": "^6.2.2"
+    "@mendix/pluggable-widgets-tools": "11.12.1",
+    "@types/big.js": "^7.0.0"
   },
   "dependencies": {
     "classnames": "^2.5.1",
-    "mendix": "^11.8.0",
-    "react-email-editor": "^1.7.11"
+    "mendix": "~11.12.6",
+    "react-email-editor": "2.1.3"
   },
   "resolutions": {
-    "react": "19.0.0",
-    "react-native": "0.78.2",
-    "react-dom": "19.0.0",
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0"
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "@types/react": "19.2.3",
+    "@types/react-dom": "19.2.3",
+    "@swc/core": "1.16.2"
   },
   "overrides": {
-    "react": "19.0.0",
-    "react-native": "0.78.2",
-    "react-dom": "19.0.0",
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0"
-  }
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "@types/react": "19.2.3",
+    "@types/react-dom": "19.2.3",
+    "@swc/core": "1.16.2"
+  },
+  "comment_mendix11": [
+    "Aligned to Mendix 11.12.6 (React client, React 19.2.3), matching the demo app.",
+    "The toolchain and the mendix typings stay on 11.12.x even though newer",
+    "releases exist: the toolchain major/minor and React must match the target",
+    "Studio Pro. react must not appear in dependencies or the toolchain prompts",
+    "to migrate and silently builds nothing; pin it through resolutions and",
+    "overrides instead. Rebuild whenever the app's Mendix version changes.",
+    "",
+    "@swc/core is pinned for npm test only: from 1.16.12 its Windows binding",
+    "refuses to load unless no ancestor of its cache folder grants other users",
+    "write access, which C:\\ does by default, so jest finds no tests to run."
+  ]
 }
