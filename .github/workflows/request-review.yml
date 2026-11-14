@@ -1,0 +1,48 @@
+name: Request review
+
+# Once CI and Compliance have both passed on a non-draft pull request, request a
+# review from the login in the PR_REVIEWER repository or organization variable.
+# Runs on whichever of the two finishes last. workflow_run only fires from the
+# copy of this file on the default branch.
+on:
+    workflow_run:
+        workflows: [CI, Compliance]
+        types: [completed]
+
+permissions:
+    pull-requests: write
+    checks: read
+    actions: read
+
+jobs:
+    request:
+        if: >-
+            github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success' &&
+            vars.PR_REVIEWER != ''
+        runs-on: ubuntu-latest
+        steps:
+            - name: Request review when every check passed
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  REPO: ${{ github.repository }}
+                  SHA: ${{ github.event.workflow_run.head_sha }}
+                  BRANCH: ${{ github.event.workflow_run.head_branch }}
+                  REVIEWER: ${{ vars.PR_REVIEWER }}
+              run: |
+                  set -euo pipefail
+                  pr=$(gh api "repos/$REPO/pulls?state=open&per_page=100" \
+                    --jq "[.[] | select(.head.sha == \"$SHA\" and .head.ref == \"$BRANCH\" and (.draft | not))][0].number // empty")
+                  if [ -z "$pr" ]; then
+                    echo "No open, non-draft pull request for $BRANCH at $SHA."
+                    exit 0
+                  fi
+                  for workflow in CI Compliance; do
+                    conclusion=$(gh api "repos/$REPO/actions/runs?head_sha=$SHA&per_page=100" \
+                      --jq "[.workflow_runs[] | select(.name == \"$workflow\" and .event == \"pull_request\")] | sort_by(.created_at) | last | .conclusion // \"missing\"")
+                    if [ "$conclusion" != "success" ]; then
+                      echo "$workflow is $conclusion; not requesting a review yet."
+                      exit 0
+                    fi
+                  done
+                  gh api -X POST "repos/$REPO/pulls/$pr/requested_reviewers" -f "reviewers[]=$REVIEWER" > /dev/null
+                  echo "Requested a review on #$pr."

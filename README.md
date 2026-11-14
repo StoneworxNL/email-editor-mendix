@@ -154,6 +154,16 @@ For the image below, we used FakeSMTP to receive a test email.
 notice. Build every package you ship with `npm run release`, which minifies it and adds `dependencies.txt` (the MIT
 notice for react-email-editor) to the `.mpk`.
 
+## License and Third-Party Services
+
+The widget is released under the MIT license (see [LICENSE](LICENSE)). The released `.mpk` contains that LICENSE and
+`dependencies.txt`, with the license texts of the bundled packages (react-email-editor and classnames, both MIT).
+
+The editor itself is not bundled: react-email-editor loads Unlayer's hosted editor from `editor.unlayer.com` at runtime.
+Using it means accepting [Unlayer's Terms of Service](https://unlayer.com/terms) and its plans: without a project ID the
+editor runs on Unlayer's free tier, with Unlayer branding, and some options (display modes other than email, custom CSS,
+white-labelling, higher usage) need a paid plan. Check your Unlayer plan before using the widget in production.
+
 ## Issues, Suggestions and Feature Requests
 
 This editor uses an iframe. Beware of this when creating templates/emails containing sensitive (company) data. The good
