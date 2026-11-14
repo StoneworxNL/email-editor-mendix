@@ -1,3 +1,6 @@
+import { copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+
 // Mendix lists externals as regexes (/^react$/, /^mendix($|\/)/, …), which is
 // also how its commonjs `ignore` callback tests them. Match that exactly rather
 // than trying to recover module names from the patterns.
@@ -54,9 +57,36 @@ function guardBundleOutput(externals) {
     };
 }
 
+/**
+ * Put the repo's LICENSE into the .mpk, or fail the build.
+ *
+ * pluggable-widgets-tools copies LICENSE itself, but it finds the file with a
+ * glob built from an OS path. On Windows that path has backslashes, the glob
+ * matches nothing and the copy is skipped without a word, so packages built on
+ * Windows shipped without a license. Copy it here, in generateBundle, which
+ * runs before the tools zip dist/tmp/widgets in writeBundle.
+ */
+function copyLicense() {
+    const widgetRoot = process.cwd();
+    const outDir = join(widgetRoot, "dist", "tmp", "widgets");
+
+    return {
+        name: "copy-license",
+
+        generateBundle() {
+            const license = readdirSync(widgetRoot).find(name => /^licen[cs]e(\.(md|txt))?$/i.test(name));
+            if (!license || !existsSync(join(widgetRoot, license))) {
+                this.error(`No LICENSE file in ${widgetRoot}: the .mpk must include the widget's license.`);
+            }
+            mkdirSync(outDir, { recursive: true });
+            copyFileSync(join(widgetRoot, license), join(outDir, "LICENSE"));
+        }
+    };
+}
+
 export default args =>
     args.configDefaultConfig.map(config => {
         const externals = Array.isArray(config.external) ? config.external : [];
-        config.plugins = [...(config.plugins || []), guardBundleOutput(externals)];
+        config.plugins = [copyLicense(), ...(config.plugins || []), guardBundleOutput(externals)];
         return config;
     });
