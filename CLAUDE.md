@@ -40,5 +40,4 @@ employer data, internal hostnames, or names/logins of reviewers and colleagues i
     (always an exact version). Anything else needs the maintainer's decision.
 -   Unlayer is a hosted, proprietary service loaded at runtime; its terms and paid features are noted in the README.
 -   The `Compliance` workflow runs gitleaks (pinned version and SHA-256) on the full history and the license check.
-    `Request review` asks the login in the `PR_REVIEWER` variable for a review once CI and Compliance pass.
 -   `demo/*.mpk` holds a Mendix demo project: keep test data only (no real addresses, constants or credentials).
