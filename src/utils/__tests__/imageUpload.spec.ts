@@ -4,9 +4,9 @@ import { registerImageUpload } from "../imageUpload";
 type Done = jest.Mock<void, [object]>;
 type Upload = (file: { attachments: File[] }, done: Done) => void;
 
-function register(): Upload {
+function register(uploadUrl = "rest/images"): Upload {
     const editor = { registerCallback: jest.fn() };
-    registerImageUpload(editor as unknown as Editor, "rest/images");
+    registerImageUpload(editor as unknown as Editor, uploadUrl);
     expect(editor.registerCallback).toHaveBeenCalledWith("image", expect.any(Function));
     return editor.registerCallback.mock.calls[0][1];
 }
@@ -42,6 +42,38 @@ describe("registerImageUpload", () => {
         expect((init.body as FormData).get("file")).toBe(image);
         expect(done).toHaveBeenLastCalledWith({ progress: 100, url: "https://app/img/logo.png" });
     });
+
+    it.each([
+        ["an absolute URL on the app's own origin", `${window.location.origin}/rest/images`, "token-1"],
+        ["another host", "https://uploads.example.com/images", undefined],
+        ["a protocol-relative URL to another host", "//uploads.example.com/images", undefined]
+    ])("sends the CSRF token only to the app's own origin: %s", async (_, uploadUrl, expected) => {
+        window.mx = { session: { getConfig: (key: string) => (key === "csrftoken" ? "token-1" : undefined) } };
+        const fetchMock = respond({ ok: true, json: () => Promise.resolve({ url: "https://app/img/logo.png" }) });
+        const done: Done = jest.fn();
+
+        register(uploadUrl)({ attachments: [image] }, done);
+        await settle();
+
+        const [url, init] = fetchMock.mock.calls[0];
+        expect(url).toBe(uploadUrl);
+        expect(init.headers["X-Csrf-Token"]).toBe(expected);
+        expect(done).toHaveBeenLastCalledWith({ progress: 100, url: "https://app/img/logo.png" });
+    });
+
+    it.each(["javascript:alert(1)", "data:image/png;base64,AAAA", "img/logo.png"])(
+        "refuses a returned URL that is not absolute http(s): %s",
+        async url => {
+            respond({ ok: true, json: () => Promise.resolve({ url }) });
+            const done: Done = jest.fn();
+            jest.spyOn(console, "error").mockImplementation(() => undefined);
+
+            register()({ attachments: [image] }, done);
+            await settle();
+
+            expect(done).toHaveBeenLastCalledWith({ error: 'Upload response "url" is not an absolute http(s) URL' });
+        }
+    );
 
     it("reports an HTTP error", async () => {
         respond({ ok: false, status: 403 });
