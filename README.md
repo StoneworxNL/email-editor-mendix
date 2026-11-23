@@ -41,8 +41,10 @@ Build emails and email templates in a friendly and easy manner, using drag and d
       attributes and then runs its action; both actions also receive the HTML and JSON as variables.
     - **Write changes to attributes**: the attributes are updated while the user edits, so a regular Save button on the
       page stores them. They are written half a second after the last edit, or at once when the user leaves the editor
-      (the pointer or focus leaves it, anything else on the page is pressed, or the page is hidden), so the last edit is
-      in the attributes before a Save button on the page runs.
+      (the pointer or focus leaves it, anything else on the page is pressed, or the page is hidden). Unlayer hands over
+      the design asynchronously, so a click elsewhere on the page that arrives while the last edit is still being
+      written is held back and repeated as soon as it is written: a Save button always stores the last edit. If Unlayer
+      does not answer within 2 seconds, the click goes ahead anyway and a warning is logged.
 
 If the object is read-only, the editor opens in preview mode and the Save Template button is hidden.
 

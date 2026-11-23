@@ -398,6 +398,175 @@ describe("Save on change when leaving the editor", () => {
     });
 });
 
+describe("Holding a click on the page until the last edit is written", () => {
+    let finishExport: (() => void) | undefined;
+    const pageSave = jest.fn();
+
+    beforeEach(() => {
+        finishExport = undefined;
+        pageSave.mockReset();
+        // Like Unlayer, answer the export later, through postMessage.
+        unlayer.exportHtml = callback => {
+            const design = unlayer.design;
+            finishExport = () => callback({ html: "<p>on screen</p>", design });
+        };
+    });
+
+    /** The widget next to a page button (a React onClick, like a Mendix action button). */
+    function page(p: ReactEmailEditorContainerProps): ReactElement {
+        return (
+            <div>
+                <EditorWrapper {...p} />
+                <button type="button" onClick={pageSave}>
+                    Page save
+                </button>
+            </div>
+        );
+    }
+
+    function pageButton(): HTMLElement {
+        return screen.getByRole("button", { name: "Page save" });
+    }
+
+    /** What a mouse click on the page button does: pointerdown first, then click. */
+    function clickPageButton(): void {
+        act(() => {
+            fireEvent.pointerDown(pageButton());
+            fireEvent.click(pageButton());
+        });
+    }
+
+    it("runs the page's click once, after the last edit is written", async () => {
+        const JSONTemplate = attribute(STORED);
+        mount(page(props({ JSONTemplate, saveOnChange: true })));
+
+        act(() => unlayer.edit(EDITED));
+        clickPageButton();
+
+        expect(pageSave).not.toHaveBeenCalled();
+        expect(finishExport).toBeDefined();
+
+        await act(async () => finishExport!());
+
+        expect(JSONTemplate.setValue).toHaveBeenCalledWith(JSON.stringify(EDITED));
+        expect(pageSave).toHaveBeenCalledTimes(1);
+        expect(JSONTemplate.setValue.mock.invocationCallOrder[0]).toBeLessThan(pageSave.mock.invocationCallOrder[0]);
+
+        // Nothing fires again later.
+        await act(async () => {
+            jest.runAllTimers();
+        });
+        expect(pageSave).toHaveBeenCalledTimes(1);
+        expect(JSONTemplate.setValue).toHaveBeenCalledTimes(1);
+    });
+
+    it("also holds a click while a save started by the delay is still exporting", async () => {
+        const JSONTemplate = attribute(STORED);
+        mount(page(props({ JSONTemplate, saveOnChange: true })));
+
+        act(() => unlayer.edit(EDITED));
+        act(() => {
+            jest.runAllTimers();
+        });
+        act(() => {
+            fireEvent.click(pageButton());
+        });
+        expect(pageSave).not.toHaveBeenCalled();
+
+        await act(async () => finishExport!());
+        expect(pageSave).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not hold a click when no edit is pending", () => {
+        mount(page(props({ JSONTemplate: attribute(STORED), saveOnChange: true })));
+
+        clickPageButton();
+
+        expect(pageSave).toHaveBeenCalledTimes(1);
+        expect(finishExport).toBeUndefined();
+    });
+
+    it("does not hold a click when the edit is not written to the attributes", () => {
+        mount(page(props({ JSONTemplate: attribute(STORED), onDesignChangeAction: saveAction() })));
+
+        act(() => unlayer.edit(EDITED));
+        clickPageButton();
+
+        expect(pageSave).toHaveBeenCalledTimes(1);
+    });
+
+    it("lets the click go ahead, once, if the editor does not answer in time", async () => {
+        const warn = jest.spyOn(console, "warn").mockImplementation(() => undefined);
+        const JSONTemplate = attribute(STORED);
+        mount(page(props({ JSONTemplate, saveOnChange: true })));
+
+        act(() => unlayer.edit(EDITED));
+        clickPageButton();
+        await act(async () => {
+            jest.advanceTimersByTime(1999);
+        });
+        expect(pageSave).not.toHaveBeenCalled();
+
+        await act(async () => {
+            jest.advanceTimersByTime(1);
+        });
+        expect(pageSave).toHaveBeenCalledTimes(1);
+        expect(warn).toHaveBeenCalledWith(expect.stringMatching(/not written in time/));
+
+        // A late answer still writes, but does not repeat the click.
+        await act(async () => finishExport!());
+        expect(JSONTemplate.setValue).toHaveBeenCalledTimes(1);
+        expect(pageSave).toHaveBeenCalledTimes(1);
+        warn.mockRestore();
+    });
+
+    it("runs the click without writing when the object changes while it is held", async () => {
+        const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true });
+        const { rerender } = mount(page(p));
+
+        act(() => unlayer.edit(EDITED));
+        clickPageButton();
+        const other = attribute(JSON.stringify({ body: { rows: ["other object"] } }));
+        rerender(page({ ...p, JSONTemplate: other }));
+        await act(async () => finishExport!());
+
+        expect(other.setValue).not.toHaveBeenCalled();
+        expect(p.JSONTemplate.setValue).not.toHaveBeenCalled();
+        expect(pageSave).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not hold clicks inside the widget", () => {
+        const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true, isShowPreview: true });
+        mount(page(p));
+
+        act(() => unlayer.edit(EDITED));
+        act(() => {
+            fireEvent.click(screen.getByRole("button", { name: "Show Preview" }));
+        });
+
+        expect(unlayer.showPreview).toHaveBeenCalled();
+    });
+
+    it("stops listening when the widget is removed", () => {
+        const { unmount } = mount(page(props({ JSONTemplate: attribute(STORED), saveOnChange: true })));
+        act(() => unlayer.edit(EDITED));
+        const button = pageButton();
+        unmount();
+
+        const outside = document.createElement("button");
+        const onClick = jest.fn();
+        outside.addEventListener("click", onClick);
+        document.body.appendChild(outside);
+        try {
+            fireEvent.click(outside);
+            expect(onClick).toHaveBeenCalledTimes(1);
+        } finally {
+            outside.remove();
+        }
+        expect(button.isConnected).toBe(false);
+    });
+});
+
 describe("Toolbar actions", () => {
     it("runs Save once on a double click", async () => {
         const JSONTemplate = attribute(STORED);

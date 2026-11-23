@@ -13,6 +13,15 @@ import { TemplateActionArgs, Toolbar } from "./Toolbar";
 /** How long to wait after the last edit before writing to the attributes. */
 const SAVE_ON_CHANGE_DELAY_MS = 500;
 
+/**
+ * How long a click on the page waits for the last edit to be written. Unlayer
+ * answers within milliseconds; this only keeps the page usable if it never does.
+ */
+const HOLD_CLICK_MAX_MS = 2000;
+
+/** Clicks the widget repeats after holding them back; they pass straight through. */
+const replayed = new WeakSet<Event>();
+
 type Exported = { html: string; json: string };
 
 /** Run a Mendix action if it is set and may run now. */
@@ -88,6 +97,8 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
     const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const pendingSave = useRef<(() => void) | undefined>(undefined);
     const saveGeneration = useRef(0);
+    /** A save-on-change whose export is under way and will write the attributes. */
+    const writing = useRef<Promise<void> | undefined>(undefined);
     const cancelSave = useCallback(() => {
         clearTimeout(saveTimer.current);
         saveTimer.current = undefined;
@@ -140,7 +151,7 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
                 clearTimeout(saveTimer.current);
                 pendingSave.current = () => {
                     const generation = saveGeneration.current;
-                    exportDesign(unlayer).then(exported => {
+                    const saving = exportDesign(unlayer).then(exported => {
                         if (generation !== saveGeneration.current) {
                             return;
                         }
@@ -150,6 +161,14 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
                         }
                         execute(latest.onDesignChangeAction, { html__: exported.html, json__: exported.json });
                     });
+                    if (propsRef.current.saveOnChange) {
+                        writing.current = saving;
+                        saving.finally(() => {
+                            if (writing.current === saving) {
+                                writing.current = undefined;
+                            }
+                        });
+                    }
                 };
                 saveTimer.current = setTimeout(saveNow, SAVE_ON_CHANGE_DELAY_MS);
             });
@@ -176,14 +195,49 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
                 saveNow();
             }
         };
+        // Unlayer exports asynchronously, so a click on the page (a Save button)
+        // can arrive before the last edit is written. Such a click is held back
+        // until the write is done and then repeated once on the same element, so
+        // the page's action always sees the last edit. Enter and Space on a button
+        // activate it through a click event too, so keyboard users are covered.
+        const onClick = (event: MouseEvent): void => {
+            if (replayed.has(event) || !(event.target instanceof Element) || container?.contains(event.target)) {
+                return;
+            }
+            saveNow();
+            const saving = writing.current;
+            if (!saving) {
+                return;
+            }
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            const target = event.target;
+            const replay = new MouseEvent("click", event);
+            replayed.add(replay);
+            let timer: ReturnType<typeof setTimeout> | undefined;
+            const giveUp = new Promise<void>(resolve => {
+                timer = setTimeout(() => {
+                    console.warn("ReactEmailEditor: the last edit was not written in time; the click goes ahead.");
+                    resolve();
+                }, HOLD_CLICK_MAX_MS);
+            });
+            Promise.race([saving, giveUp]).then(() => {
+                clearTimeout(timer);
+                if (target.isConnected) {
+                    target.dispatchEvent(replay);
+                }
+            });
+        };
         container?.addEventListener("pointerleave", saveNow);
         container?.addEventListener("focusout", saveNow);
         document.addEventListener("pointerdown", saveNow, true);
+        document.addEventListener("click", onClick, true);
         document.addEventListener("visibilitychange", onVisibilityChange);
         return () => {
             container?.removeEventListener("pointerleave", saveNow);
             container?.removeEventListener("focusout", saveNow);
             document.removeEventListener("pointerdown", saveNow, true);
+            document.removeEventListener("click", onClick, true);
             document.removeEventListener("visibilitychange", onVisibilityChange);
         };
     }, [saveNow]);
