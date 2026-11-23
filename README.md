@@ -40,8 +40,9 @@ Build emails and email templates in a friendly and easy manner, using drag and d
     - **Toolbar actions**: set the Save Template and/or Export HTML actions. Save Template writes the JSON and HTML
       attributes and then runs its action; both actions also receive the HTML and JSON as variables.
     - **Write changes to attributes**: the attributes are updated while the user edits, so a regular Save button on the
-      page stores them. The attributes are written half a second after the last edit, so a Save clicked within that time
-      commits the object without the last change. Use the Save Template action when every edit must be stored.
+      page stores them. They are written half a second after the last edit, or at once when the user leaves the editor
+      (the pointer or focus leaves it, anything else on the page is pressed, or the page is hidden), so the last edit is
+      in the attributes before a Save button on the page runs.
 
 If the object is read-only, the editor opens in preview mode and the Save Template button is hidden.
 

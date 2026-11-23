@@ -81,9 +81,29 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
     // reloading would throw away the user's undo history and selection.
     const syncedJson = useRef<string | undefined>(undefined);
 
+    // Save-on-change waits for a pause in editing (saveTimer), then runs the
+    // pending save. Leaving the editor runs it at once (see saveNow). Cancelling
+    // bumps the generation, so a save whose export is still under way when the
+    // object changes writes nothing either.
     const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const pendingSave = useRef<(() => void) | undefined>(undefined);
+    const saveGeneration = useRef(0);
+    const cancelSave = useCallback(() => {
+        clearTimeout(saveTimer.current);
+        saveTimer.current = undefined;
+        pendingSave.current = undefined;
+        saveGeneration.current++;
+    }, []);
+    /** Run the pending save now, if there is one. */
+    const saveNow = useCallback(() => {
+        const save = pendingSave.current;
+        clearTimeout(saveTimer.current);
+        saveTimer.current = undefined;
+        pendingSave.current = undefined;
+        save?.();
+    }, []);
     // The editor is destroyed on unmount; a pending save would call into it.
-    useEffect(() => () => clearTimeout(saveTimer.current), []);
+    useEffect(() => cancelSave, [cancelSave]);
 
     const readOnly = JSONTemplate.readOnly;
 
@@ -118,15 +138,20 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
                     return;
                 }
                 clearTimeout(saveTimer.current);
-                saveTimer.current = setTimeout(() => {
+                pendingSave.current = () => {
+                    const generation = saveGeneration.current;
                     exportDesign(unlayer).then(exported => {
+                        if (generation !== saveGeneration.current) {
+                            return;
+                        }
                         const latest = propsRef.current;
                         if (latest.saveOnChange) {
                             writeAttributes(exported);
                         }
                         execute(latest.onDesignChangeAction, { html__: exported.html, json__: exported.json });
                     });
-                }, SAVE_ON_CHANGE_DELAY_MS);
+                };
+                saveTimer.current = setTimeout(saveNow, SAVE_ON_CHANGE_DELAY_MS);
             });
 
             unlayer.addEventListener("design:loaded", () => execute(propsRef.current.onDesignLoadAction));
@@ -136,8 +161,32 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
             setReady({ editor: unlayer, options: optionsRef.current });
             execute(propsRef.current.onReadyAction);
         },
-        [exportDesign, writeAttributes]
+        [exportDesign, writeAttributes, saveNow]
     );
+
+    // Leaving the editor saves at once, so a Save button on the page commits the
+    // last edit: the pointer leaving the widget, focus leaving it (keyboard),
+    // a press anywhere else on the page (edits inside Unlayer's iframe never
+    // reach this document), or the page being hidden.
+    const containerRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        const container = containerRef.current;
+        const onVisibilityChange = (): void => {
+            if (document.visibilityState === "hidden") {
+                saveNow();
+            }
+        };
+        container?.addEventListener("pointerleave", saveNow);
+        container?.addEventListener("focusout", saveNow);
+        document.addEventListener("pointerdown", saveNow, true);
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        return () => {
+            container?.removeEventListener("pointerleave", saveNow);
+            container?.removeEventListener("focusout", saveNow);
+            document.removeEventListener("pointerdown", saveNow, true);
+            document.removeEventListener("visibilitychange", onVisibilityChange);
+        };
+    }, [saveNow]);
 
     // Load the design from the attribute, once the editor and the value are ready.
     useEffect(() => {
@@ -145,8 +194,7 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         // elsewhere. A pending save-on-change belongs to what was there before and
         // must not be written into this one.
         if (jsonStatus !== ValueStatus.Available || jsonValue !== syncedJson.current) {
-            clearTimeout(saveTimer.current);
-            saveTimer.current = undefined;
+            cancelSave();
         }
         // An empty value never clears the editor. It is what a rollback of a new
         // object produces, for instance when a pop-up opened by the save action is
@@ -163,7 +211,7 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         } else {
             console.error(`ReactEmailEditor: ${parsed.error}`);
         }
-    }, [editor, jsonStatus, jsonValue, parsed]);
+    }, [editor, jsonStatus, jsonValue, parsed, cancelSave]);
 
     // Whether the preview is showing: always when the editor is read-only,
     // otherwise when the user switched it on for this editor.
@@ -249,7 +297,7 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
     const error = optionsError ?? scriptUrlError ?? loadError;
 
     return (
-        <div className={classNames("react-email-editor-div", props.class)} style={props.style}>
+        <div ref={containerRef} className={classNames("react-email-editor-div", props.class)} style={props.style}>
             <Toolbar
                 ready={editor !== null}
                 readOnly={readOnly}

@@ -310,6 +310,94 @@ describe("Save on change", () => {
     });
 });
 
+describe("Save on change when leaving the editor", () => {
+    const leaving: Array<[string, (widget: HTMLElement) => void]> = [
+        ["the pointer leaves the widget", widget => fireEvent.pointerLeave(widget)],
+        ["focus leaves the widget", widget => fireEvent.focusOut(widget)],
+        ["the pointer is pressed elsewhere on the page", () => fireEvent.pointerDown(document.body)],
+        [
+            "the page is hidden",
+            () => {
+                Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
+                try {
+                    fireEvent(document, new Event("visibilitychange"));
+                } finally {
+                    delete (document as { visibilityState?: unknown }).visibilityState;
+                }
+            }
+        ]
+    ];
+
+    it.each(leaving)("writes the last edit at once when %s", async (_, leave) => {
+        const JSONTemplate = attribute(STORED);
+        const onDesignChangeAction = saveAction();
+        const { container } = mount(
+            <EditorWrapper {...props({ JSONTemplate, saveOnChange: true, onDesignChangeAction })} />
+        );
+
+        act(() => unlayer.edit(EDITED));
+        await act(async () => leave(container.firstChild as HTMLElement));
+
+        expect(JSONTemplate.setValue).toHaveBeenCalledWith(JSON.stringify(EDITED));
+        expect(onDesignChangeAction.execute).toHaveBeenCalledTimes(1);
+
+        // The delay that follows saves nothing twice.
+        await act(async () => {
+            jest.runAllTimers();
+        });
+        expect(JSONTemplate.setValue).toHaveBeenCalledTimes(1);
+        expect(onDesignChangeAction.execute).toHaveBeenCalledTimes(1);
+    });
+
+    it("does nothing when no edit is pending", async () => {
+        const JSONTemplate = attribute(STORED);
+        const { container } = mount(<EditorWrapper {...props({ JSONTemplate, saveOnChange: true })} />);
+
+        await act(async () => {
+            fireEvent.pointerLeave(container.firstChild as HTMLElement);
+        });
+
+        expect(JSONTemplate.setValue).not.toHaveBeenCalled();
+    });
+
+    it("does not write into another object after the data view switched", async () => {
+        const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true });
+        const { container, rerender } = mount(<EditorWrapper {...p} />);
+
+        act(() => unlayer.edit(EDITED));
+        const other = attribute(JSON.stringify({ body: { rows: ["other object"] } }));
+        rerender(<EditorWrapper {...p} JSONTemplate={other} />);
+        await act(async () => {
+            fireEvent.pointerLeave(container.firstChild as HTMLElement);
+        });
+
+        expect(other.setValue).not.toHaveBeenCalled();
+        expect(p.JSONTemplate.setValue).not.toHaveBeenCalled();
+    });
+
+    it("does not write into another object that arrives while the export is under way", async () => {
+        const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true });
+        const { container, rerender } = mount(<EditorWrapper {...p} />);
+        let finishExport: (() => void) | undefined;
+        unlayer.exportHtml = callback => {
+            finishExport = () => callback({ html: "<p>on screen</p>", design: EDITED });
+        };
+
+        act(() => unlayer.edit(EDITED));
+        act(() => {
+            fireEvent.pointerLeave(container.firstChild as HTMLElement);
+        });
+        expect(finishExport).toBeDefined();
+
+        const other = attribute(JSON.stringify({ body: { rows: ["other object"] } }));
+        rerender(<EditorWrapper {...p} JSONTemplate={other} />);
+        await act(async () => finishExport!());
+
+        expect(other.setValue).not.toHaveBeenCalled();
+        expect(p.JSONTemplate.setValue).not.toHaveBeenCalled();
+    });
+});
+
 describe("Toolbar actions", () => {
     it("runs Save once on a double click", async () => {
         const JSONTemplate = attribute(STORED);
