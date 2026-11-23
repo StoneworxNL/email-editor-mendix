@@ -1,4 +1,4 @@
-import { buildOptions, parseAdvancedOptions } from "../editorOptions";
+import { buildOptions, checkScriptUrl, parseAdvancedOptions, parseDesign } from "../editorOptions";
 
 describe("buildOptions", () => {
     it("sets the display mode, version, theme and project ID", () => {
@@ -39,5 +39,43 @@ describe("parseAdvancedOptions", () => {
         } else {
             expect(result).toEqual({ options: {} });
         }
+    });
+});
+
+describe("parseDesign", () => {
+    it("accepts a JSON object", () => {
+        expect(parseDesign('{"body": {}}')).toEqual({ design: { body: {} } });
+    });
+
+    it.each(["[]", '[{"body": {}}]', "null", "42", '"text"'])("refuses %s, which is no design", json => {
+        expect(parseDesign(json)).toEqual({ error: "The saved template is not a JSON object." });
+    });
+
+    it("reports invalid JSON", () => {
+        expect(parseDesign("{oops").error).toMatch(/^The saved template could not be read/);
+    });
+});
+
+describe("checkScriptUrl", () => {
+    it.each([
+        "",
+        "  ",
+        undefined,
+        "https://cdn.example.com/embed.js",
+        "HTTPS://cdn.example.com/embed.js",
+        "widgets/embed.js",
+        "/embed.js"
+    ])("accepts %j", url => {
+        expect(checkScriptUrl(url)).toBeUndefined();
+    });
+
+    it.each([
+        "http://cdn.example.com/embed.js",
+        "//cdn.example.com/embed.js",
+        "/\\cdn.example.com/embed.js",
+        "javascript:alert(1)",
+        "data:text/javascript,alert(1)"
+    ])("refuses %j", url => {
+        expect(checkScriptUrl(url)).toBe("The embed script URL must start with https:// or be a path in the app.");
     });
 });

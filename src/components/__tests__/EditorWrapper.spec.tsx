@@ -271,6 +271,80 @@ describe("Save on change", () => {
         expect(JSONTemplate.setValue).not.toHaveBeenCalled();
         expect(p.JSONTemplate.setValue).not.toHaveBeenCalled();
     });
+
+    it.each([
+        ["another template", JSON.stringify({ body: { rows: ["other object"] } })],
+        ["an empty template", ""]
+    ])(
+        "drops a pending save when the data view switches to an object with %s before the delay ends",
+        async (_, otherValue) => {
+            const onDesignChangeAction = saveAction();
+            const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true, onDesignChangeAction });
+            const { rerender } = mount(<EditorWrapper {...p} />);
+
+            act(() => unlayer.edit(EDITED));
+            const other = attribute(otherValue);
+            rerender(<EditorWrapper {...p} JSONTemplate={other} />);
+            await act(async () => {
+                jest.runAllTimers();
+            });
+
+            expect(other.setValue).not.toHaveBeenCalled();
+            expect(p.JSONTemplate.setValue).not.toHaveBeenCalled();
+            expect(onDesignChangeAction.execute).not.toHaveBeenCalled();
+        }
+    );
+
+    it("keeps a pending save across re-renders of the same value", async () => {
+        const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true });
+        const { rerender } = mount(<EditorWrapper {...p} />);
+
+        act(() => unlayer.edit(EDITED));
+        const same = attribute(STORED);
+        rerender(<EditorWrapper {...p} JSONTemplate={same} />);
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        expect(same.setValue).toHaveBeenCalledWith(JSON.stringify(EDITED));
+    });
+});
+
+describe("Toolbar actions", () => {
+    it("runs Save once on a double click", async () => {
+        const JSONTemplate = attribute(STORED);
+        const p = props({ JSONTemplate });
+        mount(<EditorWrapper {...p} />);
+
+        await act(async () => {
+            fireEvent.click(saveButton());
+            fireEvent.click(saveButton());
+        });
+
+        expect(JSONTemplate.setValue).toHaveBeenCalledTimes(1);
+        expect(p.saveTemplateAction!.execute).toHaveBeenCalledTimes(1);
+
+        await clickSave();
+        expect(p.saveTemplateAction!.execute).toHaveBeenCalledTimes(2);
+    });
+});
+
+describe("Embed script URL", () => {
+    it("does not load the editor from a URL that is not https or a path in the app", () => {
+        mockOptions = undefined;
+        mount(<EditorWrapper {...props({ scriptUrl: "http://cdn.example.com/embed.js" })} />);
+
+        expect(screen.getByRole("alert").textContent).toMatch(/must start with https:\/\//);
+        expect(mockOptions).toBeUndefined();
+    });
+
+    it("loads the editor from an https URL", () => {
+        mockOptions = undefined;
+        mount(<EditorWrapper {...props({ scriptUrl: "https://cdn.example.com/embed.js" })} />);
+
+        expect(screen.queryByRole("alert")).toBeNull();
+        expect(mockOptions).toBeDefined();
+    });
 });
 
 describe("Loading", () => {

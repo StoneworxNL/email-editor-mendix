@@ -1,5 +1,5 @@
 import { ReactEmailEditorPreviewProps } from "../typings/ReactEmailEditorProps";
-import { parseAdvancedOptions } from "./utils/editorOptions";
+import { checkScriptUrl, parseAdvancedOptions } from "./utils/editorOptions";
 
 export type Platform = "web" | "desktop";
 
@@ -139,6 +139,19 @@ export function check(_values: ReactEmailEditorPreviewProps): Problem[] {
     const { error } = parseAdvancedOptions(_values.advancedOptions);
     if (error) {
         errors.push({ property: "advancedOptions", message: error });
+    }
+    if (_values.scriptUrl.trim()) {
+        const scriptUrlError = checkScriptUrl(_values.scriptUrl);
+        errors.push(
+            scriptUrlError
+                ? { property: "scriptUrl", message: scriptUrlError }
+                : {
+                      property: "scriptUrl",
+                      severity: "warning",
+                      message:
+                          "The editor runs the script at this URL in the app, with the user's session, and its integrity is not checked. Only load it from a host you control."
+                  }
+        );
     }
     if (_values.imageUploadMode === "endpoint" && !_values.imageUploadUrl.trim()) {
         errors.push({ property: "imageUploadUrl", message: "Set the URL that receives uploaded images." });

@@ -4,7 +4,7 @@ import EmailEditor, { EditorRef } from "react-email-editor";
 import classNames from "classnames";
 
 import { DisplayModeEnum, ReactEmailEditorContainerProps } from "../../typings/ReactEmailEditorProps";
-import { buildOptions, Editor, parseAdvancedOptions, parseDesign } from "../utils/editorOptions";
+import { buildOptions, checkScriptUrl, Editor, parseAdvancedOptions, parseDesign } from "../utils/editorOptions";
 import { registerImageUpload } from "../utils/imageUpload";
 import { buildMergeTags } from "../utils/mergeTags";
 import { canWriteTemplate } from "../utils/templateAttribute";
@@ -141,6 +141,13 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
 
     // Load the design from the attribute, once the editor and the value are ready.
     useEffect(() => {
+        // A value the widget did not write means another object, or a change made
+        // elsewhere. A pending save-on-change belongs to what was there before and
+        // must not be written into this one.
+        if (jsonStatus !== ValueStatus.Available || jsonValue !== syncedJson.current) {
+            clearTimeout(saveTimer.current);
+            saveTimer.current = undefined;
+        }
         // An empty value never clears the editor. It is what a rollback of a new
         // object produces, for instance when a pop-up opened by the save action is
         // closed, and clearing would throw away everything the user made.
@@ -212,23 +219,34 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
         }
     }, [editor, mergeTags]);
 
+    // A toolbar action is running from the click until its Mendix action starts
+    // (isExecuting only flips after that), so a double click runs it once.
+    const actionRunning = useRef(false);
     const runAction = useCallback(
         async (action: ActionValue<TemplateActionArgs>, write: boolean): Promise<void> => {
-            if (!editor) {
+            if (!editor || actionRunning.current) {
                 return;
             }
-            const exported = await exportDesign(editor);
-            // Running the save action after a refused write would commit the
-            // object as if the template had been stored.
-            if (write && !writeAttributes(exported)) {
-                return;
+            actionRunning.current = true;
+            try {
+                const exported = await exportDesign(editor);
+                // Running the save action after a refused write would commit the
+                // object as if the template had been stored.
+                if (write && !writeAttributes(exported)) {
+                    return;
+                }
+                execute(action, { html__: exported.html, json__: exported.json });
+            } finally {
+                actionRunning.current = false;
             }
-            execute(action, { html__: exported.html, json__: exported.json });
         },
         [editor, exportDesign, writeAttributes]
     );
 
-    const error = optionsError ?? loadError;
+    // A script from anywhere else would run with the user's session; refuse to
+    // load the editor rather than quietly fall back to Unlayer's own script.
+    const scriptUrlError = checkScriptUrl(props.scriptUrl);
+    const error = optionsError ?? scriptUrlError ?? loadError;
 
     return (
         <div className={classNames("react-email-editor-div", props.class)} style={props.style}>
@@ -272,13 +290,15 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
                     {error}
                 </div>
             )}
-            <EmailEditor
-                ref={emailEditorRef}
-                onReady={onReady}
-                minHeight={props.editorHeight || "700px"}
-                options={options}
-                scriptUrl={props.scriptUrl?.trim() || undefined}
-            />
+            {!scriptUrlError && (
+                <EmailEditor
+                    ref={emailEditorRef}
+                    onReady={onReady}
+                    minHeight={props.editorHeight || "700px"}
+                    options={options}
+                    scriptUrl={props.scriptUrl?.trim() || undefined}
+                />
+            )}
         </div>
     );
 }

@@ -38,7 +38,7 @@
                     <caption>Write changes to attributes</caption>
                     <description>
                         Write the design (and HTML) to the attributes while the user edits, so a regular Save button on
-                        the page stores them. No action is executed.
+                        the page stores them, half a second after the last edit. No action is executed.
                     </description>
                 </property>
             </propertyGroup>
@@ -89,15 +89,17 @@
                 <property key="editorVersion" type="string" required="false">
                     <caption>Editor version</caption>
                     <description>
-                        Optional. Unlayer editor version to load, for example latest or 1.157.0. Leave empty for
-                        Unlayer's stable version. A version in the advanced options takes precedence.
+                        Optional. Unlayer editor version to load, for example 1.157.0, or latest (not pinned: it changes
+                        without notice). Leave empty for Unlayer's stable version. A version in the advanced options
+                        takes precedence.
                     </description>
                 </property>
                 <property key="scriptUrl" type="string" required="false">
                     <caption>Embed script URL</caption>
                     <description>
-                        Optional. Where to load Unlayer's embed.js from, for example a self-hosted copy. Leave empty for
-                        https://editor.unlayer.com/embed.js.
+                        Optional. Where to load Unlayer's embed.js from, for example a self-hosted copy: an https:// URL
+                        or a path in the app. The script runs with the user's session, so only use a host you control.
+                        Leave empty for https://editor.unlayer.com/embed.js.
                     </description>
                 </property>
                 <property key="advancedOptions" type="string" multiline="true" required="false">

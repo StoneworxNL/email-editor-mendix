@@ -65,12 +65,30 @@ export function buildOptions(
  */
 export const HIDE_PREVIEW_CONTROLS_CSS = "#close-preview, .toolbar-button:has(.fa-eye) { display: none !important; }";
 
+/**
+ * Check the "Embed script URL" property. The script runs in the app with the
+ * user's session, so it must come from the app itself (a path such as
+ * widgets/unlayer/embed.js) or from an https: URL. Returns an error message, or
+ * undefined when the URL is empty or acceptable.
+ */
+export function checkScriptUrl(url: string | undefined): string | undefined {
+    const trimmed = url?.trim() ?? "";
+    if (!trimmed) {
+        return undefined;
+    }
+    const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(trimmed)?.[1].toLowerCase();
+    if (scheme === "https" || (!scheme && !/^[/\\]{2}/.test(trimmed))) {
+        return undefined;
+    }
+    return "The embed script URL must start with https:// or be a path in the app.";
+}
+
 export type ParsedDesign = { design?: object; error?: string };
 
 export function parseDesign(json: string): ParsedDesign {
     try {
         const design = JSON.parse(json);
-        if (!design || typeof design !== "object") {
+        if (!design || typeof design !== "object" || Array.isArray(design)) {
             return { error: "The saved template is not a JSON object." };
         }
         return { design };
