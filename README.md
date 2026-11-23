@@ -23,6 +23,12 @@ Build emails and email templates in a friendly and easy manner, using drag and d
     -   You can then easily convert it into Mendix Email Templates
     -   With custom logic, you can go back and forth between the email editor and the Mendix template
 
+## Requirements
+
+-   Studio Pro 11.12 or later (the widget uses action variables and is built with the 11.12 toolchain). Version 1.2.0
+    was built for Studio Pro 10.24.
+-   An internet connection: the editor is loaded from Unlayer at runtime.
+
 ## Usage
 
 1. In a database entity, make sure you have a String attribute (unlimited length) to store the JSON design and,
@@ -34,7 +40,8 @@ Build emails and email templates in a friendly and easy manner, using drag and d
     - **Toolbar actions**: set the Save Template and/or Export HTML actions. Save Template writes the JSON and HTML
       attributes and then runs its action; both actions also receive the HTML and JSON as variables.
     - **Write changes to attributes**: the attributes are updated while the user edits, so a regular Save button on the
-      page stores them.
+      page stores them. The attributes are written half a second after the last edit, so a Save clicked within that time
+      commits the object without the last change. Use the Save Template action when every edit must be stored.
 
 If the object is read-only, the editor opens in preview mode and the Save Template button is hidden.
 
@@ -50,8 +57,8 @@ If the object is read-only, the editor opens in preview mode and the Save Templa
 | Editor     | Theme                       | Modern or classic, light or dark.                                                                     |
 | Editor     | Display mode                | Email, web page, pop-up or document. All but email may need a paid Unlayer plan.                      |
 | Editor     | Locale                      | Optional expression, eg. `'nl-NL'`. Not set: the app's language (English stays English).              |
-| Editor     | Editor version              | Optional Unlayer version, eg. `latest` or `1.157.0`. Empty loads Unlayer's stable version.            |
-| Editor     | Embed script URL            | Optional location of `embed.js`, eg. a self-hosted copy.                                              |
+| Editor     | Editor version              | Optional Unlayer version, eg. `1.157.0`. `latest` is not pinned (see Security). Empty: stable.        |
+| Editor     | Embed script URL            | Optional location of `embed.js`: an `https://` URL or a path in the app (see Security).               |
 | Editor     | Advanced options (JSON)     | Any other [Unlayer option](https://docs.unlayer.com), eg. `{"tools": {"html": {"enabled": false}}}`.  |
 | Actions    | Preview                     | Show/Hide Preview button and the device it starts on. A read-only editor always previews.             |
 | Actions    | Captions                    | Translatable button captions.                                                                         |
@@ -90,8 +97,22 @@ By default, images that users upload are stored by Unlayer, outside your applica
 -   stores it where the email's recipients can reach it (the URL ends up in the email)
 -   responds with JSON: `{"url": "https://your-app/path/to/image.png"}`
 
-When available, the Mendix session's CSRF token is sent in the `X-Csrf-Token` header, so the service can use the active
-session for authentication. Choose **Disabled** to hide uploads entirely.
+When the Upload URL is on the app's own origin (a relative path such as the example above, or the app's own address),
+the Mendix session's CSRF token is sent in the `X-Csrf-Token` header, so the service can use the active session for
+authentication. It is never sent to another host. The returned `url` must be an absolute `http://` or `https://` URL;
+anything else is refused. Choose **Disabled** to hide uploads entirely.
+
+### Security
+
+-   **HTML attribute (stored XSS).** Unlayer's HTML block accepts any markup, including `<script>`, and the exported
+    HTML contains it as is. Never show the HTML attribute in the app (eg. an HTML snippet or viewer) without sanitizing
+    it on the server first. If users who edit templates are not trusted, also turn off the HTML block with the advanced
+    options `{"tools": {"html": {"enabled": false}}}`.
+-   **Embed script URL.** The script runs in your app with the user's session, and its integrity cannot be checked (no
+    Subresource Integrity). Only load it from a host you control. It must be an `https://` URL or a path in the app; any
+    other URL is refused, and Studio Pro warns whenever the property is set.
+-   **Editor version.** `latest` is not pinned: Unlayer can change it at any time. Use an exact version (eg. `1.157.0`)
+    or leave the property empty for Unlayer's stable version.
 
 ### Content Security Policy
 
