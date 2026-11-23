@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { ActionValue, EditableValue, ValueStatus } from "mendix";
 
 import { ReactEmailEditorContainerProps } from "../../../typings/ReactEmailEditorProps";
-import { EditorWrapper } from "../EditorWrapper";
+import { desktopPreviewResolution, EditorWrapper } from "../EditorWrapper";
 import { TemplateActionArgs } from "../Toolbar";
 
 /** Stands in for Unlayer: records what the widget asks of it. */
@@ -712,6 +712,19 @@ describe("Holding a click on the page until the last edit is written", () => {
     });
 });
 
+describe("desktopPreviewResolution", () => {
+    it.each([
+        [undefined, undefined],
+        [0, undefined],
+        [978, 878],
+        [1380, undefined],
+        [1379, 1279],
+        [300, 320]
+    ])("for an editor %p px wide is %p", (width, expected) => {
+        expect(desktopPreviewResolution(width)).toBe(expected);
+    });
+});
+
 describe("Toolbar actions", () => {
     it("runs Save once on a double click", async () => {
         const JSONTemplate = attribute(STORED);
@@ -779,6 +792,32 @@ describe("Preview", () => {
     function previewButton(): HTMLButtonElement | null {
         return screen.queryByRole("button", { name: /Preview$/ }) as HTMLButtonElement | null;
     }
+
+    it("previews desktop at a width that fits a narrow editor", () => {
+        const width = jest.spyOn(HTMLIFrameElement.prototype, "clientWidth", "get").mockReturnValue(978);
+        try {
+            mount(<EditorWrapper {...props({ isShowPreview: true, previewDevice: "desktop" })} />);
+            act(() => {
+                fireEvent.click(previewButton()!);
+            });
+            expect(unlayer.showPreview).toHaveBeenCalledWith({ device: "desktop", resolution: 878 });
+        } finally {
+            width.mockRestore();
+        }
+    });
+
+    it("keeps Unlayer's own desktop width when the editor is wide enough", () => {
+        const width = jest.spyOn(HTMLIFrameElement.prototype, "clientWidth", "get").mockReturnValue(1600);
+        try {
+            mount(<EditorWrapper {...props({ isShowPreview: true, previewDevice: "desktop" })} />);
+            act(() => {
+                fireEvent.click(previewButton()!);
+            });
+            expect(unlayer.showPreview).toHaveBeenCalledWith("desktop");
+        } finally {
+            width.mockRestore();
+        }
+    });
 
     it("switches between editing and previewing on the chosen device", () => {
         mount(<EditorWrapper {...props({ isShowPreview: true, previewDevice: "mobile" })} />);

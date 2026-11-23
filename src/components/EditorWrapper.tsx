@@ -19,6 +19,23 @@ const SAVE_ON_CHANGE_DELAY_MS = 500;
  */
 const HOLD_CLICK_MAX_MS = 2000;
 
+/** Unlayer's desktop preview width, and the room its preview frame takes around it. */
+const DESKTOP_PREVIEW_WIDTH = 1280;
+const PREVIEW_FRAME_PX = 100;
+
+/**
+ * Unlayer previews desktop at 1280px wide, so in a narrower editor its preview
+ * scrolls sideways as well as the email scrolling down: two scrollbars. Show it
+ * at the width that fits instead; Unlayer's own width menu still offers 1280px.
+ */
+export function desktopPreviewResolution(editorWidth: number | undefined): number | undefined {
+    if (!editorWidth) {
+        return undefined;
+    }
+    const fits = Math.floor(editorWidth - PREVIEW_FRAME_PX);
+    return fits < DESKTOP_PREVIEW_WIDTH ? Math.max(fits, 320) : undefined;
+}
+
 /** Elements that Enter or Space activate. */
 const ACTIVATORS =
     'button, a[href], input[type="button"], input[type="submit"], input[type="reset"], [role="button"], [role="link"], [role="menuitem"], [role="tab"]';
@@ -382,7 +399,13 @@ export function EditorWrapper(props: ReactEmailEditorContainerProps): ReactEleme
             return;
         }
         if (previewing) {
-            editor.showPreview(previewDevice);
+            const resolution =
+                previewDevice === "desktop"
+                    ? desktopPreviewResolution(
+                          (containerRef.current?.querySelector("iframe") ?? containerRef.current)?.clientWidth
+                      )
+                    : undefined;
+            editor.showPreview(resolution ? { device: previewDevice, resolution } : previewDevice);
             previewShownIn.current = editor;
         } else if (previewShownIn.current === editor) {
             editor.hidePreview();

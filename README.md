@@ -82,6 +82,9 @@ button is turned off so the two cannot disagree. Unlayer reports no event when i
 button can only be hidden on a paid plan (custom CSS); closing the preview there leaves the widget's button on "Hide
 Preview" until it is clicked.
 
+Unlayer previews desktop at 1280px. When the widget opens the desktop preview in a narrower editor, it uses the width
+that fits, so the preview does not scroll sideways; Unlayer's width menu in the preview still offers 1280px.
+
 ### Merge Tags
 
 Point the Merge tags data source at a list (eg. a microflow returning non-persistent objects) and set:
