@@ -39,8 +39,8 @@
                     <description>
                         Write the design (and HTML) to the attributes while the user edits, so a regular Save button on
                         the page stores them: half a second after the last edit, or at once when the user leaves the
-                        editor. A click elsewhere on the page waits until the last edit is written. No action is
-                        executed.
+                        editor. A click (or Enter or Space on a button) elsewhere on the page waits until the last edit
+                        is written. No action is executed.
                     </description>
                 </property>
             </propertyGroup>
@@ -217,8 +217,9 @@
                 <property key="onDesignChangeAction" type="action" required="false">
                     <caption>On change</caption>
                     <description>
-                        Runs shortly after the user stops editing. When Write changes to attributes is on, the
-                        attributes are written first.
+                        Runs shortly after the user stops editing, or leaves the editor, when the design differs from
+                        the one last loaded or saved. When Write changes to attributes is on, the attributes are
+                        written first.
                     </description>
                     <actionVariables>
                         <actionVariable key="html__" type="String" caption="HTML of Email Template" />

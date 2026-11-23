@@ -37,14 +37,17 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 3. Add the email editor widget inside the data view.
 4. Set the JSON template attribute and, optionally, the HTML attribute.
 5. Choose how the design is saved:
-    - **Toolbar actions**: set the Save Template and/or Export HTML actions. Save Template writes the JSON and HTML
-      attributes and then runs its action; both actions also receive the HTML and JSON as variables.
-    - **Write changes to attributes**: the attributes are updated while the user edits, so a regular Save button on the
-      page stores them. They are written half a second after the last edit, or at once when the user leaves the editor
-      (the pointer or focus leaves it, anything else on the page is pressed, or the page is hidden). Unlayer hands over
-      the design asynchronously, so a click elsewhere on the page that arrives while the last edit is still being
-      written is held back and repeated as soon as it is written: a Save button always stores the last edit. If Unlayer
-      does not answer within 2 seconds, the click goes ahead anyway and a warning is logged.
+    - **Toolbar actions** (the simplest choice when the editor is the only thing on the page): set the Save Template
+      and/or Export HTML actions. Save Template writes the JSON and HTML attributes and then runs its action; both
+      actions also receive the HTML and JSON as variables.
+    - **Write changes to attributes** (when the template is saved together with other fields by the page's own Save
+      button): the attributes are updated while the user edits, so a regular Save button on the page stores them. They
+      are written half a second after the last edit, or at once when the user leaves the editor (the pointer or focus
+      leaves it, anything else on the page is pressed, or the page is hidden). Unlayer hands over the design
+      asynchronously and reports an edit only some 300 ms after typing stops, so a click, or Enter or Space on a button,
+      elsewhere on the page that arrives while the last edit is still being written is held back and repeated as soon as
+      it is written: a Save button always stores the last edit. If Unlayer does not answer within 2 seconds, the page
+      goes ahead anyway and a warning is logged.
 
 If the object is read-only, the editor opens in preview mode and the Save Template button is hidden.
 
@@ -67,7 +70,7 @@ If the object is read-only, the editor opens in preview mode and the Save Templa
 | Actions    | Captions                    | Translatable button captions.                                                                         |
 | Events     | On ready                    | Runs when the editor is ready, and again whenever it is recreated.                                    |
 | Events     | On design loaded            | Runs after the design from the attribute has been loaded.                                             |
-| Events     | On change                   | Runs shortly after the user stops editing, with the HTML and JSON as variables.                       |
+| Events     | On change                   | Runs after an edit that changed the stored design, with the HTML and JSON as variables.               |
 | Merge tags | Merge tags                  | Optional list of placeholders offered in the editor (see below).                                      |
 | Images     | Image uploads               | Unlayer storage, own endpoint or disabled (see below).                                                |
 
