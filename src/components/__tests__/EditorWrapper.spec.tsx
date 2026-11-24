@@ -92,7 +92,6 @@ function props(overrides: Partial<ReactEmailEditorContainerProps> = {}): ReactEm
         name: "editor",
         class: "",
         JSONTemplate: attribute(""),
-        saveOnChange: false,
         projectId: 0,
         editorHeight: "",
         theme: "modern_light",
@@ -217,168 +216,29 @@ describe("Save", () => {
     });
 });
 
-describe("Save on change", () => {
-    /** Edit, let the delay pass, and let the export promise settle. */
-    async function editAndWait(): Promise<void> {
-        await act(async () => {
-            unlayer.edit(EDITED);
-            jest.runAllTimers();
-        });
-    }
-
-    it("writes the design after an edit", async () => {
-        const JSONTemplate = attribute(STORED);
-        mount(<EditorWrapper {...props({ JSONTemplate, saveOnChange: true })} />);
-
-        await editAndWait();
-
-        expect(JSONTemplate.setValue).toHaveBeenCalledWith(JSON.stringify(EDITED));
-    });
-
-    it("does not overwrite a stored template that could not be read", async () => {
-        const JSONTemplate = attribute("{not json");
-        const HTMLBody = attribute("");
-        mount(<EditorWrapper {...props({ JSONTemplate, HTMLBody, saveOnChange: true })} />);
-
-        await editAndWait();
-
-        expect(JSONTemplate.setValue).not.toHaveBeenCalled();
-        expect(HTMLBody.setValue).not.toHaveBeenCalled();
-    });
-
-    it.each([ValueStatus.Loading, ValueStatus.Unavailable])(
-        "does not write while the attribute is %s",
-        async status => {
-            const JSONTemplate = attribute(undefined, status);
-            mount(<EditorWrapper {...props({ JSONTemplate, saveOnChange: true })} />);
-
-            await editAndWait();
-
-            expect(JSONTemplate.setValue).not.toHaveBeenCalled();
-        }
-    );
-
-    it("does not write if the attribute stops being available before the delay ends", async () => {
-        const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true });
-        const { rerender } = mount(<EditorWrapper {...p} />);
-
-        act(() => unlayer.edit(EDITED));
-        const JSONTemplate = attribute(undefined, ValueStatus.Loading);
-        rerender(<EditorWrapper {...p} JSONTemplate={JSONTemplate} />);
-        await act(async () => {
-            jest.runAllTimers();
-        });
-
-        expect(JSONTemplate.setValue).not.toHaveBeenCalled();
-        expect(p.JSONTemplate.setValue).not.toHaveBeenCalled();
-    });
-
+describe("On change", () => {
     it.each([
         ["another template", JSON.stringify({ body: { rows: ["other object"] } })],
         ["an empty template", ""]
-    ])(
-        "drops a pending save when the data view switches to an object with %s before the delay ends",
-        async (_, otherValue) => {
-            const onDesignChangeAction = saveAction();
-            const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true, onDesignChangeAction });
-            const { rerender } = mount(<EditorWrapper {...p} />);
-
-            act(() => unlayer.edit(EDITED));
-            const other = attribute(otherValue);
-            rerender(<EditorWrapper {...p} JSONTemplate={other} />);
-            await act(async () => {
-                jest.runAllTimers();
-            });
-
-            expect(other.setValue).not.toHaveBeenCalled();
-            expect(p.JSONTemplate.setValue).not.toHaveBeenCalled();
-            expect(onDesignChangeAction.execute).not.toHaveBeenCalled();
-        }
-    );
-
-    it("keeps a pending save across re-renders of the same value", async () => {
-        const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true });
+    ])("is dropped when the data view switches to an object with %s before the delay ends", async (_, otherValue) => {
+        const onDesignChangeAction = saveAction();
+        const p = props({ JSONTemplate: attribute(STORED), onDesignChangeAction });
         const { rerender } = mount(<EditorWrapper {...p} />);
 
         act(() => unlayer.edit(EDITED));
-        const same = attribute(STORED);
-        rerender(<EditorWrapper {...p} JSONTemplate={same} />);
-        await act(async () => {
-            jest.runAllTimers();
-        });
-
-        expect(same.setValue).toHaveBeenCalledWith(JSON.stringify(EDITED));
-    });
-});
-
-describe("Save on change when leaving the editor", () => {
-    const leaving: Array<[string, (widget: HTMLElement) => void]> = [
-        ["the pointer leaves the widget", widget => fireEvent.pointerLeave(widget)],
-        ["focus leaves the widget", widget => fireEvent.focusOut(widget)],
-        ["the pointer is pressed elsewhere on the page", () => fireEvent.pointerDown(document.body)],
-        [
-            "the page is hidden",
-            () => {
-                Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
-                try {
-                    fireEvent(document, new Event("visibilitychange"));
-                } finally {
-                    delete (document as { visibilityState?: unknown }).visibilityState;
-                }
-            }
-        ]
-    ];
-
-    it.each(leaving)("writes the last edit at once when %s", async (_, leave) => {
-        const JSONTemplate = attribute(STORED);
-        const onDesignChangeAction = saveAction();
-        const { container } = mount(
-            <EditorWrapper {...props({ JSONTemplate, saveOnChange: true, onDesignChangeAction })} />
-        );
-
-        act(() => unlayer.edit(EDITED));
-        await act(async () => leave(container.firstChild as HTMLElement));
-
-        expect(JSONTemplate.setValue).toHaveBeenCalledWith(JSON.stringify(EDITED));
-        expect(onDesignChangeAction.execute).toHaveBeenCalledTimes(1);
-
-        // The delay that follows saves nothing twice.
-        await act(async () => {
-            jest.runAllTimers();
-        });
-        expect(JSONTemplate.setValue).toHaveBeenCalledTimes(1);
-        expect(onDesignChangeAction.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it("does nothing when no edit is pending", async () => {
-        const JSONTemplate = attribute(STORED);
-        const { container } = mount(<EditorWrapper {...props({ JSONTemplate, saveOnChange: true })} />);
-
-        await act(async () => {
-            fireEvent.pointerLeave(container.firstChild as HTMLElement);
-        });
-
-        expect(JSONTemplate.setValue).not.toHaveBeenCalled();
-    });
-
-    it("does not write into another object after the data view switched", async () => {
-        const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true });
-        const { container, rerender } = mount(<EditorWrapper {...p} />);
-
-        act(() => unlayer.edit(EDITED));
-        const other = attribute(JSON.stringify({ body: { rows: ["other object"] } }));
+        const other = attribute(otherValue);
         rerender(<EditorWrapper {...p} JSONTemplate={other} />);
         await act(async () => {
-            fireEvent.pointerLeave(container.firstChild as HTMLElement);
+            jest.runAllTimers();
         });
 
-        expect(other.setValue).not.toHaveBeenCalled();
-        expect(p.JSONTemplate.setValue).not.toHaveBeenCalled();
+        expect(onDesignChangeAction.execute).not.toHaveBeenCalled();
     });
 
-    it("does not write into another object that arrives while the export is under way", async () => {
-        const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true });
-        const { container, rerender } = mount(<EditorWrapper {...p} />);
+    it("is dropped when the object changes while the export is under way", async () => {
+        const onDesignChangeAction = saveAction();
+        const p = props({ JSONTemplate: attribute(STORED), onDesignChangeAction });
+        const { rerender } = mount(<EditorWrapper {...p} />);
         let finishExport: (() => void) | undefined;
         unlayer.exportHtml = callback => {
             finishExport = () => callback({ html: "<p>on screen</p>", design: EDITED });
@@ -386,329 +246,69 @@ describe("Save on change when leaving the editor", () => {
 
         act(() => unlayer.edit(EDITED));
         act(() => {
-            fireEvent.pointerLeave(container.firstChild as HTMLElement);
+            jest.runAllTimers();
         });
         expect(finishExport).toBeDefined();
-
-        const other = attribute(JSON.stringify({ body: { rows: ["other object"] } }));
-        rerender(<EditorWrapper {...p} JSONTemplate={other} />);
+        rerender(<EditorWrapper {...p} JSONTemplate={attribute(JSON.stringify({ body: { rows: ["other"] } }))} />);
         await act(async () => finishExport!());
 
-        expect(other.setValue).not.toHaveBeenCalled();
-        expect(p.JSONTemplate.setValue).not.toHaveBeenCalled();
-    });
-});
-
-describe("Holding a click on the page until the last edit is written", () => {
-    let finishExport: (() => void) | undefined;
-    const pageSave = jest.fn();
-
-    beforeEach(() => {
-        finishExport = undefined;
-        pageSave.mockReset();
-        // Like Unlayer, answer the export later, through postMessage.
-        unlayer.exportHtml = callback => {
-            const design = unlayer.design;
-            finishExport = () => callback({ html: "<p>on screen</p>", design });
-        };
+        expect(onDesignChangeAction.execute).not.toHaveBeenCalled();
     });
 
-    /** The widget next to a page button (a React onClick, like a Mendix action button). */
-    function page(p: ReactEmailEditorContainerProps): ReactElement {
-        return (
+    it("does not report an edit that Save Template already stored", async () => {
+        const JSONTemplate = attribute(STORED);
+        const onDesignChangeAction = saveAction();
+        const p = props({ JSONTemplate, onDesignChangeAction });
+        mount(<EditorWrapper {...p} />);
+
+        unlayer.design = EDITED;
+        await clickSave();
+        expect(JSONTemplate.setValue).toHaveBeenCalledWith(JSON.stringify(EDITED));
+
+        // Unlayer reports the edit only after it was saved.
+        await act(async () => {
+            unlayer.edit(EDITED);
+            jest.runAllTimers();
+        });
+        expect(onDesignChangeAction.execute).not.toHaveBeenCalled();
+    });
+
+    it("reports each change, also back to an earlier design", async () => {
+        const onDesignChangeAction = saveAction();
+        mount(<EditorWrapper {...props({ JSONTemplate: attribute(STORED), onDesignChangeAction })} />);
+
+        const editor = unlayer;
+        const editAndWait = (design: object): Promise<void> =>
+            act(async () => {
+                editor.edit(design);
+                jest.runAllTimers();
+            });
+        await editAndWait(EDITED);
+        await editAndWait(JSON.parse(STORED));
+        await editAndWait(JSON.parse(STORED));
+
+        expect(onDesignChangeAction.execute).toHaveBeenCalledTimes(2);
+        expect(onDesignChangeAction.execute).toHaveBeenLastCalledWith({ html__: "<p>on screen</p>", json__: STORED });
+    });
+
+    it("does not listen to the page: clicks and keys elsewhere pass straight through", () => {
+        const onClick = jest.fn();
+        mount(
             <div>
-                <EditorWrapper {...p} />
-                <button type="button" onClick={pageSave}>
+                <EditorWrapper {...props({ JSONTemplate: attribute(STORED), onDesignChangeAction: saveAction() })} />
+                <button type="button" onClick={onClick}>
                     Page save
                 </button>
             </div>
         );
-    }
-
-    function pageButton(): HTMLElement {
-        return screen.getByRole("button", { name: "Page save" });
-    }
-
-    /** What a mouse click on the page button does: pointerdown first, then click. */
-    function clickPageButton(): void {
-        act(() => {
-            fireEvent.pointerDown(pageButton());
-            fireEvent.click(pageButton());
-        });
-    }
-
-    /** The user works in the editor: focus is in Unlayer's iframe. */
-    function focusEditor(): void {
-        act(() => {
-            screen.getByTitle("Unlayer editor").focus();
-            fireEvent.blur(window);
-        });
-    }
-
-    it("writes an edit Unlayer has not reported yet before the page's click runs", async () => {
-        const JSONTemplate = attribute(STORED);
-        const onDesignChangeAction = saveAction();
-        mount(page(props({ JSONTemplate, saveOnChange: true, onDesignChangeAction })));
-
-        focusEditor();
-        // Typed, but Unlayer reports design:updated only some 300 ms later.
-        unlayer.design = EDITED;
-        clickPageButton();
-        expect(pageSave).not.toHaveBeenCalled();
-
-        await act(async () => finishExport!());
-
-        expect(JSONTemplate.setValue).toHaveBeenCalledWith(JSON.stringify(EDITED));
-        expect(onDesignChangeAction.execute).toHaveBeenCalledTimes(1);
-        expect(pageSave).toHaveBeenCalledTimes(1);
-        expect(JSONTemplate.setValue.mock.invocationCallOrder[0]).toBeLessThan(pageSave.mock.invocationCallOrder[0]);
-
-        // Unlayer's late report of the same edit writes and runs nothing again.
-        finishExport = undefined;
-        unlayer.exportHtml = callback => callback({ html: "<p>on screen</p>", design: unlayer.design });
-        await act(async () => {
-            unlayer.edit(EDITED);
-            jest.runAllTimers();
-        });
-        expect(JSONTemplate.setValue).toHaveBeenCalledTimes(1);
-        expect(onDesignChangeAction.execute).toHaveBeenCalledTimes(1);
-    });
-
-    it("writes nothing when the editor had focus but nothing changed", async () => {
-        const JSONTemplate = attribute(STORED);
-        mount(page(props({ JSONTemplate, saveOnChange: true })));
-
-        focusEditor();
-        clickPageButton();
-        await act(async () => finishExport!());
-
-        expect(JSONTemplate.setValue).not.toHaveBeenCalled();
-        expect(pageSave).toHaveBeenCalledTimes(1);
-    });
-
-    it("holds Enter on a page button that acts on keydown, like a Mendix button", async () => {
-        const JSONTemplate = attribute(STORED);
-        const onKeyDown = jest.fn((event: { key: string; preventDefault: () => void }) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-            }
-        });
-        const onClick = jest.fn();
-        mount(
-            <div>
-                <EditorWrapper {...props({ JSONTemplate, saveOnChange: true })} />
-                <button type="button" onKeyDown={onKeyDown} onClick={onClick}>
-                    Mendix save
-                </button>
-            </div>
-        );
-        const button = screen.getByRole("button", { name: "Mendix save" });
 
         act(() => unlayer.edit(EDITED));
         act(() => {
-            button.focus();
-            fireEvent.keyDown(button, { key: "Enter" });
-        });
-        expect(onKeyDown).not.toHaveBeenCalled();
-
-        await act(async () => finishExport!());
-
-        expect(JSONTemplate.setValue).toHaveBeenCalledWith(JSON.stringify(EDITED));
-        expect(onKeyDown).toHaveBeenCalledTimes(1);
-        expect(onClick).not.toHaveBeenCalled();
-    });
-
-    it.each(["Enter", " "])("clicks a plain page button after holding %j, as the browser would", async key => {
-        const JSONTemplate = attribute(STORED);
-        mount(page(props({ JSONTemplate, saveOnChange: true })));
-
-        act(() => unlayer.edit(EDITED));
-        act(() => {
-            pageButton().focus();
-            fireEvent.keyDown(pageButton(), { key });
-        });
-        expect(pageSave).not.toHaveBeenCalled();
-
-        await act(async () => finishExport!());
-
-        expect(JSONTemplate.setValue).toHaveBeenCalledTimes(1);
-        expect(pageSave).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not hold other keys, or keys outside buttons", () => {
-        const JSONTemplate = attribute(STORED);
-        mount(page(props({ JSONTemplate, saveOnChange: true })));
-        const keys = jest.fn();
-        document.addEventListener("keydown", keys);
-        try {
-            act(() => unlayer.edit(EDITED));
-            act(() => {
-                fireEvent.keyDown(pageButton(), { key: "a" });
-                fireEvent.keyDown(document.body, { key: "Enter" });
-            });
-            expect(keys).toHaveBeenCalledTimes(2);
-        } finally {
-            document.removeEventListener("keydown", keys);
-        }
-    });
-
-    it("leaves the widget's own Save Template to its action, without a stray On change", async () => {
-        const JSONTemplate = attribute(STORED);
-        const onDesignChangeAction = saveAction();
-        const p = props({ JSONTemplate, saveOnChange: true, onDesignChangeAction });
-        mount(page(p));
-        unlayer.exportHtml = callback => callback({ html: "<p>on screen</p>", design: unlayer.design });
-
-        focusEditor();
-        unlayer.design = EDITED;
-        await act(async () => {
-            fireEvent.pointerDown(saveButton());
-            saveButton().focus();
-            fireEvent(window, new FocusEvent("focus"));
-            jest.runOnlyPendingTimers();
-            fireEvent.click(saveButton());
+            fireEvent.pointerDown(screen.getByRole("button", { name: "Page save" }));
+            fireEvent.click(screen.getByRole("button", { name: "Page save" }));
         });
 
-        expect(JSONTemplate.setValue).toHaveBeenCalledTimes(1);
-        expect(p.saveTemplateAction!.execute).toHaveBeenCalledTimes(1);
-
-        // Unlayer reports the edit after it was saved.
-        await act(async () => {
-            unlayer.edit(EDITED);
-            jest.runAllTimers();
-        });
-        expect(JSONTemplate.setValue).toHaveBeenCalledTimes(1);
-        expect(onDesignChangeAction.execute).not.toHaveBeenCalled();
-    });
-
-    it("runs the page's click once, after the last edit is written", async () => {
-        const JSONTemplate = attribute(STORED);
-        mount(page(props({ JSONTemplate, saveOnChange: true })));
-
-        act(() => unlayer.edit(EDITED));
-        clickPageButton();
-
-        expect(pageSave).not.toHaveBeenCalled();
-        expect(finishExport).toBeDefined();
-
-        await act(async () => finishExport!());
-
-        expect(JSONTemplate.setValue).toHaveBeenCalledWith(JSON.stringify(EDITED));
-        expect(pageSave).toHaveBeenCalledTimes(1);
-        expect(JSONTemplate.setValue.mock.invocationCallOrder[0]).toBeLessThan(pageSave.mock.invocationCallOrder[0]);
-
-        // Nothing fires again later.
-        await act(async () => {
-            jest.runAllTimers();
-        });
-        expect(pageSave).toHaveBeenCalledTimes(1);
-        expect(JSONTemplate.setValue).toHaveBeenCalledTimes(1);
-    });
-
-    it("also holds a click while a save started by the delay is still exporting", async () => {
-        const JSONTemplate = attribute(STORED);
-        mount(page(props({ JSONTemplate, saveOnChange: true })));
-
-        act(() => unlayer.edit(EDITED));
-        act(() => {
-            jest.runAllTimers();
-        });
-        act(() => {
-            fireEvent.click(pageButton());
-        });
-        expect(pageSave).not.toHaveBeenCalled();
-
-        await act(async () => finishExport!());
-        expect(pageSave).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not hold a click when no edit is pending", () => {
-        mount(page(props({ JSONTemplate: attribute(STORED), saveOnChange: true })));
-
-        clickPageButton();
-
-        expect(pageSave).toHaveBeenCalledTimes(1);
-        expect(finishExport).toBeUndefined();
-    });
-
-    it("does not hold a click when the edit is not written to the attributes", () => {
-        mount(page(props({ JSONTemplate: attribute(STORED), onDesignChangeAction: saveAction() })));
-
-        act(() => unlayer.edit(EDITED));
-        clickPageButton();
-
-        expect(pageSave).toHaveBeenCalledTimes(1);
-    });
-
-    it("lets the click go ahead, once, if the editor does not answer in time", async () => {
-        const warn = jest.spyOn(console, "warn").mockImplementation(() => undefined);
-        const JSONTemplate = attribute(STORED);
-        mount(page(props({ JSONTemplate, saveOnChange: true })));
-
-        act(() => unlayer.edit(EDITED));
-        clickPageButton();
-        await act(async () => {
-            jest.advanceTimersByTime(1999);
-        });
-        expect(pageSave).not.toHaveBeenCalled();
-
-        await act(async () => {
-            jest.advanceTimersByTime(1);
-        });
-        expect(pageSave).toHaveBeenCalledTimes(1);
-        expect(warn).toHaveBeenCalledWith(expect.stringMatching(/not written in time/));
-
-        // A late answer still writes, but does not repeat the click.
-        await act(async () => finishExport!());
-        expect(JSONTemplate.setValue).toHaveBeenCalledTimes(1);
-        expect(pageSave).toHaveBeenCalledTimes(1);
-        warn.mockRestore();
-    });
-
-    it("runs the click without writing when the object changes while it is held", async () => {
-        const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true });
-        const { rerender } = mount(page(p));
-
-        act(() => unlayer.edit(EDITED));
-        clickPageButton();
-        const other = attribute(JSON.stringify({ body: { rows: ["other object"] } }));
-        rerender(page({ ...p, JSONTemplate: other }));
-        await act(async () => finishExport!());
-
-        expect(other.setValue).not.toHaveBeenCalled();
-        expect(p.JSONTemplate.setValue).not.toHaveBeenCalled();
-        expect(pageSave).toHaveBeenCalledTimes(1);
-    });
-
-    it("does not hold clicks inside the widget", () => {
-        const p = props({ JSONTemplate: attribute(STORED), saveOnChange: true, isShowPreview: true });
-        mount(page(p));
-
-        act(() => unlayer.edit(EDITED));
-        act(() => {
-            fireEvent.click(screen.getByRole("button", { name: "Show Preview" }));
-        });
-
-        expect(unlayer.showPreview).toHaveBeenCalled();
-    });
-
-    it("stops listening when the widget is removed", () => {
-        const { unmount } = mount(page(props({ JSONTemplate: attribute(STORED), saveOnChange: true })));
-        act(() => unlayer.edit(EDITED));
-        const button = pageButton();
-        unmount();
-
-        const outside = document.createElement("button");
-        const onClick = jest.fn();
-        outside.addEventListener("click", onClick);
-        document.body.appendChild(outside);
-        try {
-            fireEvent.click(outside);
-            expect(onClick).toHaveBeenCalledTimes(1);
-        } finally {
-            outside.remove();
-        }
-        expect(button.isConnected).toBe(false);
+        expect(onClick).toHaveBeenCalledTimes(1);
     });
 });
 

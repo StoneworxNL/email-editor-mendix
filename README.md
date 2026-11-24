@@ -36,43 +36,34 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 2. Fetch an object of this entity in a data view's data source (eg. microflow).
 3. Add the email editor widget inside the data view.
 4. Set the JSON template attribute and, optionally, the HTML attribute.
-5. Choose how the design is saved:
-    - **Toolbar actions** (the simplest choice when the editor is the only thing on the page): set the Save Template
-      and/or Export HTML actions. Save Template writes the JSON and HTML attributes and then runs its action; both
-      actions also receive the HTML and JSON as variables.
-    - **Write changes to attributes** (when the template is saved together with other fields by the page's own Save
-      button): the attributes are updated while the user edits, so a regular Save button on the page stores them. They
-      are written half a second after the last edit, or at once when the user leaves the editor (the pointer or focus
-      leaves it, anything else on the page is pressed, or the page is hidden). Unlayer hands over the design
-      asynchronously and reports an edit only some 300 ms after typing stops, so a click, or Enter or Space on a button,
-      elsewhere on the page that arrives while the last edit is still being written is held back and repeated as soon as
-      it is written: a Save button always stores the last edit. If Unlayer does not answer within 2 seconds, the page
-      goes ahead anyway and a warning is logged.
+5. Set the Save Template and/or Export HTML actions. Save Template writes the JSON and HTML attributes and then runs its
+   action (eg. a microflow that commits the object); both actions also receive the HTML and JSON as variables. The
+   widget saves the design only through Save Template: a regular Save button on the page does not store edits made in
+   the editor (see Upgrading).
 
 If the object is read-only, the editor opens in preview mode and the Save Template button is hidden.
 
 ### Properties
 
-| Group      | Property                    | Description                                                                                           |
-| ---------- | --------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Data       | JSON Template               | String attribute holding the design.                                                                  |
-| Data       | HTML                        | Optional. String attribute that receives the exported HTML.                                           |
-| Data       | Write changes to attributes | Update the attributes while editing (off by default).                                                 |
-| Editor     | Unlayer project ID          | Project ID from the [Unlayer Developer Console](https://dashboard.unlayer.com). Needed in production. |
-| Editor     | Height                      | Minimum height (CSS length). Unlayer recommends at least 1024 × 700 px.                               |
-| Editor     | Theme                       | Modern or classic, light or dark.                                                                     |
-| Editor     | Display mode                | Email, web page, pop-up or document. All but email may need a paid Unlayer plan.                      |
-| Editor     | Locale                      | Optional expression, eg. `'nl-NL'`. Not set: the app's language (English stays English).              |
-| Editor     | Editor version              | Optional Unlayer version, eg. `1.157.0`. `latest` is not pinned (see Security). Empty: stable.        |
-| Editor     | Embed script URL            | Optional location of `embed.js`: an `https://` URL or a path in the app (see Security).               |
-| Editor     | Advanced options (JSON)     | Any other [Unlayer option](https://docs.unlayer.com), eg. `{"tools": {"html": {"enabled": false}}}`.  |
-| Actions    | Preview                     | Show/Hide Preview button and the device it starts on. A read-only editor always previews.             |
-| Actions    | Captions                    | Translatable button captions.                                                                         |
-| Events     | On ready                    | Runs when the editor is ready, and again whenever it is recreated.                                    |
-| Events     | On design loaded            | Runs after the design from the attribute has been loaded.                                             |
-| Events     | On change                   | Runs after an edit that changed the stored design, with the HTML and JSON as variables.               |
-| Merge tags | Merge tags                  | Optional list of placeholders offered in the editor (see below).                                      |
-| Images     | Image uploads               | Unlayer storage, own endpoint or disabled (see below).                                                |
+| Group      | Property                | Description                                                                                           |
+| ---------- | ----------------------- | ----------------------------------------------------------------------------------------------------- |
+| Data       | JSON Template           | String attribute holding the design.                                                                  |
+| Data       | HTML                    | Optional. String attribute that receives the exported HTML.                                           |
+| Editor     | Unlayer project ID      | Project ID from the [Unlayer Developer Console](https://dashboard.unlayer.com). Needed in production. |
+| Editor     | Height                  | Minimum height (CSS length). Unlayer recommends at least 1024 × 700 px.                               |
+| Editor     | Theme                   | Modern or classic, light or dark.                                                                     |
+| Editor     | Display mode            | Email, web page, pop-up or document. All but email may need a paid Unlayer plan.                      |
+| Editor     | Locale                  | Optional expression, eg. `'nl-NL'`. Not set: the app's language (English stays English).              |
+| Editor     | Editor version          | Optional Unlayer version, eg. `1.157.0`. `latest` is not pinned (see Security). Empty: stable.        |
+| Editor     | Embed script URL        | Optional location of `embed.js`: an `https://` URL or a path in the app (see Security).               |
+| Editor     | Advanced options (JSON) | Any other [Unlayer option](https://docs.unlayer.com), eg. `{"tools": {"html": {"enabled": false}}}`.  |
+| Actions    | Preview                 | Show/Hide Preview button and the device it starts on. A read-only editor always previews.             |
+| Actions    | Captions                | Translatable button captions.                                                                         |
+| Events     | On ready                | Runs when the editor is ready, and again whenever it is recreated.                                    |
+| Events     | On design loaded        | Runs after the design from the attribute has been loaded.                                             |
+| Events     | On change               | Runs after an edit that changed the design, with the HTML and JSON as variables. Writes nothing.      |
+| Merge tags | Merge tags              | Optional list of placeholders offered in the editor (see below).                                      |
+| Images     | Image uploads           | Unlayer storage, own endpoint or disabled (see below).                                                |
 
 Display mode, editor version and advanced options are applied when the editor is created; changing them recreates the
 editor. Locale, merge tags and the upload URL are updated in place.
@@ -177,6 +168,16 @@ After creating the template, we can use custom logic to fill in placeholders (if
 For the image below, we used FakeSMTP to receive a test email.
 
 ![Sent Email Example](https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/example.png)
+
+## Upgrading
+
+**From 1.1.0 – 1.2.1:** the **Write changes to attributes** property is gone. It wrote the design to the attributes in
+the background so that a page's own Save button could store it, which needed the widget to hold back clicks and keys on
+the whole page to be reliable. Studio Pro removes the property when you update the widget. Pages that used it must save
+through the widget's **Save Template** action instead: set Save Template to the microflow or nanoflow that the page's
+Save button ran (it receives the HTML and JSON as variables, and the attributes are written before it runs), and remove
+or keep the page's own Save button for the other fields. On change still runs after edits, but no longer writes the
+attributes.
 
 ## Building a Release
 

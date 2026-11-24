@@ -21,7 +21,6 @@ export interface ReactEmailEditorContainerProps {
     tabIndex?: number;
     JSONTemplate: EditableValue<string>;
     HTMLBody?: EditableValue<string>;
-    saveOnChange: boolean;
     projectId: number;
     editorHeight: string;
     theme: ThemeEnum;
@@ -64,7 +63,6 @@ export interface ReactEmailEditorPreviewProps {
     translate: (text: string) => string;
     JSONTemplate: string;
     HTMLBody: string;
-    saveOnChange: boolean;
     projectId: number | null;
     editorHeight: string;
     theme: ThemeEnum;
