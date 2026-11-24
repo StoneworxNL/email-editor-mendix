@@ -65,22 +65,38 @@ export function buildOptions(
  */
 export const HIDE_PREVIEW_CONTROLS_CSS = "#close-preview, .toolbar-button:has(.fa-eye) { display: none !important; }";
 
+const SCRIPT_URL_ERROR = "The embed script URL must start with https:// or be a path in the app.";
+
 /**
  * Check the "Embed script URL" property. The script runs in the app with the
- * user's session, so it must come from the app itself (a path such as
- * widgets/unlayer/embed.js) or from an https: URL. Returns an error message, or
- * undefined when the URL is empty or acceptable.
+ * user's session, so it must be an https: URL or come from the app itself (a
+ * path such as widgets/unlayer/embed.js). The URL is resolved the way the
+ * browser will load it, against the page (`base`), so tricks such as a tab or
+ * newline inside the URL, or a protocol-relative URL on an http page, cannot
+ * point it somewhere else. Studio Pro has no page, so it checks against an
+ * https placeholder, and where its script engine has no URL parser, by the same
+ * rules on the URL with tabs and newlines removed, as the browser does. Returns
+ * an error message, or undefined when the URL is empty or acceptable.
  */
-export function checkScriptUrl(url: string | undefined): string | undefined {
+export function checkScriptUrl(url: string | undefined, base = "https://app.invalid/"): string | undefined {
     const trimmed = url?.trim() ?? "";
     if (!trimmed) {
         return undefined;
     }
-    const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(trimmed)?.[1].toLowerCase();
-    if (scheme === "https" || (!scheme && !/^[/\\]{2}/.test(trimmed))) {
-        return undefined;
+    if (typeof URL === "undefined") {
+        const cleaned = trimmed.replace(/[\t\n\r]/g, "");
+        const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(cleaned)?.[1].toLowerCase();
+        return scheme === "https" || (!scheme && !/^[/\\]{2}/.test(cleaned)) ? undefined : SCRIPT_URL_ERROR;
     }
-    return "The embed script URL must start with https:// or be a path in the app.";
+    try {
+        const resolved = new URL(trimmed, base);
+        if (resolved.protocol === "https:" || resolved.origin === new URL(base).origin) {
+            return undefined;
+        }
+    } catch {
+        // Not a URL at all.
+    }
+    return SCRIPT_URL_ERROR;
 }
 
 export type ParsedDesign = { design?: object; error?: string };

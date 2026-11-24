@@ -57,6 +57,10 @@ describe("parseDesign", () => {
 });
 
 describe("checkScriptUrl", () => {
+    const ERROR = "The embed script URL must start with https:// or be a path in the app.";
+    // The page the widget runs on, as in local development.
+    const page = "http://localhost:8080/p/designs";
+
     it.each([
         "",
         "  ",
@@ -64,18 +68,50 @@ describe("checkScriptUrl", () => {
         "https://cdn.example.com/embed.js",
         "HTTPS://cdn.example.com/embed.js",
         "widgets/embed.js",
-        "/embed.js"
-    ])("accepts %j", url => {
-        expect(checkScriptUrl(url)).toBeUndefined();
+        "/embed.js",
+        "http://localhost:8080/widgets/embed.js"
+    ])("accepts %j on the page", url => {
+        expect(checkScriptUrl(url, page)).toBeUndefined();
     });
 
     it.each([
         "http://cdn.example.com/embed.js",
         "//cdn.example.com/embed.js",
         "/\\cdn.example.com/embed.js",
+        "/\t/cdn.example.com/embed.js",
+        "/\n/cdn.example.com/embed.js",
+        " /\r\t/cdn.example.com/embed.js",
         "javascript:alert(1)",
         "data:text/javascript,alert(1)"
-    ])("refuses %j", url => {
-        expect(checkScriptUrl(url)).toBe("The embed script URL must start with https:// or be a path in the app.");
+    ])("refuses %j on the page", url => {
+        expect(checkScriptUrl(url, page)).toBe(ERROR);
+    });
+
+    it("checks paths against an https placeholder in Studio Pro", () => {
+        expect(checkScriptUrl("widgets/embed.js")).toBeUndefined();
+        expect(checkScriptUrl("http://cdn.example.com/embed.js")).toBe(ERROR);
+    });
+
+    describe("where the script engine has no URL parser", () => {
+        const url = global.URL;
+        beforeEach(() => {
+            delete (global as { URL?: unknown }).URL;
+        });
+        afterEach(() => {
+            global.URL = url;
+        });
+
+        it.each(["https://cdn.example.com/embed.js", "widgets/embed.js", "/embed.js"])("accepts %j", value => {
+            expect(checkScriptUrl(value)).toBeUndefined();
+        });
+
+        it.each([
+            "http://cdn.example.com/embed.js",
+            "//cdn.example.com/embed.js",
+            "/\t/cdn.example.com/embed.js",
+            "/\\cdn.example.com/embed.js"
+        ])("refuses %j", value => {
+            expect(checkScriptUrl(value)).toBe(ERROR);
+        });
     });
 });
