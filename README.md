@@ -171,13 +171,16 @@ For the image below, we used FakeSMTP to receive a test email.
 
 ## Upgrading
 
-**From 1.1.0 – 1.2.1:** the **Write changes to attributes** property is gone. It wrote the design to the attributes in
-the background so that a page's own Save button could store it, which needed the widget to hold back clicks and keys on
-the whole page to be reliable. Studio Pro removes the property when you update the widget. Pages that used it must save
-through the widget's **Save Template** action instead: set Save Template to the microflow or nanoflow that the page's
-Save button ran (it receives the HTML and JSON as variables, and the attributes are written before it runs), and remove
-or keep the page's own Save button for the other fields. On change still runs after edits, but no longer writes the
-attributes.
+**From 1.0.x (the Marketplace release):** update the widget in Studio Pro. Existing settings are kept and the new
+properties have defaults.
+
+**From a 1.1.0 – 1.2.1 package built from this repository** (these were never released on the Marketplace): the **Write
+changes to attributes** property is gone. It wrote the design to the attributes in the background so that a page's own
+Save button could store it, which needed the widget to hold back clicks and keys on the whole page to be reliable.
+Studio Pro removes the property when you update the widget. Pages that used it must save through the widget's **Save
+Template** action instead: set Save Template to the microflow or nanoflow that the page's Save button ran (it receives
+the HTML and JSON as variables, and the attributes are written before it runs), and remove or keep the page's own Save
+button for the other fields. On change still runs after edits, but no longer writes the attributes.
 
 ## Building a Release
 
