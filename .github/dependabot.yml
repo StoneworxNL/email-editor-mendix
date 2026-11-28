@@ -1,0 +1,24 @@
+version: 2
+updates:
+    - package-ecosystem: npm
+      directory: /
+      schedule:
+          interval: weekly
+      groups:
+          npm:
+              patterns: ["*"]
+      # The toolchain and the mendix typings must match the target Studio Pro
+      # (see package.json), and @swc/core is pinned for npm test on Windows.
+      ignore:
+          - dependency-name: "@mendix/pluggable-widgets-tools"
+            update-types: ["version-update:semver-major", "version-update:semver-minor"]
+          - dependency-name: "mendix"
+            update-types: ["version-update:semver-major", "version-update:semver-minor"]
+          - dependency-name: "@swc/core"
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: monthly
+      groups:
+          actions:
+              patterns: ["*"]

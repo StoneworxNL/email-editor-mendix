@@ -2,8 +2,8 @@
 
 A Mendix Pluggable Widget to build emails and email templates using
 [Unlayer's Editor](https://github.com/unlayer/react-email-editor). This will allow you to quickly build beautiful and
-complex emails, end-user oriented; reuse templates and designs; make sure they look ok in different devices and in
-dark-mode... All embedded in your Mendix application.
+complex emails, end-user oriented; reuse templates and designs; make sure they look ok on different devices. All
+embedded in your Mendix application.
 
 <img alt="Mendix Pluggable Widget Email Editor Logo" src="https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/logo.jpeg" width="65px"/>
 
@@ -17,20 +17,109 @@ Build emails and email templates in a friendly and easy manner, using drag and d
     -   Change settings
 -   Load existing templates
 -   Preview emails (for desktop, tablet and mobile devices, using different resolutions)
-    -   Preview available for dark mode as well
 -   Save Design (JSON with template) and/or save HTML
     -   Mendix action (such as call microflow) possible
     -   You can then easily convert it into Mendix Email Templates
     -   With custom logic, you can go back and forth between the email editor and the Mendix template
 
+## Requirements
+
+-   Studio Pro 11.12 or later (the widget uses action variables and is built with the 11.12 toolchain). Version 1.2.0
+    was built for Studio Pro 10.24.
+-   An internet connection: the editor is loaded from Unlayer at runtime.
+
 ## Usage
 
-1. In a database entity, make sure you have a String attribute to store the JSON configuration and another String
-   attribute to store the HTML. This can be non-persistent.
+1. In a database entity, make sure you have a String attribute (unlimited length) to store the JSON design and,
+   optionally, another String attribute to store the HTML. These can be non-persistent.
 2. Fetch an object of this entity in a data view's data source (eg. microflow).
 3. Add the email editor widget inside the data view.
-4. Set the HTML body and JSON template attributes.
-5. Optionally, set an action to export the HTML and another to save the JSON template.
+4. Set the JSON template attribute and, optionally, the HTML attribute.
+5. Set the Save Template and/or Export HTML actions. Save Template writes the JSON and HTML attributes and then runs its
+   action (eg. a microflow that commits the object); both actions also receive the HTML and JSON as variables. The
+   widget saves the design only through Save Template: a regular Save button on the page does not store edits made in
+   the editor (see Upgrading).
+
+If the object is read-only, the editor opens in preview mode and the Save Template button is hidden.
+
+### Properties
+
+| Group      | Property                | Description                                                                                            |
+| ---------- | ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| Data       | JSON Template           | String attribute holding the design.                                                                   |
+| Data       | HTML                    | Optional. String attribute that receives the exported HTML.                                            |
+| Editor     | Unlayer project ID      | Project ID from the [Unlayer Developer Console](https://dashboard.unlayer.com). Needed in production.  |
+| Editor     | Height                  | Minimum height (CSS length). Unlayer recommends at least 1024 × 700 px.                                |
+| Editor     | Theme                   | Modern light (default). The other themes need a paid Unlayer plan (see Unlayer plans).                 |
+| Editor     | Display mode            | Email, web page, pop-up or document, all in Unlayer's free plan.                                       |
+| Editor     | Locale                  | Optional expression, eg. `'nl-NL'`. A translated editor needs a paid Unlayer plan (see Unlayer plans). |
+| Editor     | Editor version          | Optional Unlayer version, eg. `1.157.0`. `latest` is not pinned (see Security). Empty: stable.         |
+| Editor     | Embed script URL        | Optional location of `embed.js`: an `https://` URL or a path in the app (see Security).                |
+| Editor     | Advanced options (JSON) | Any other [Unlayer option](https://docs.unlayer.com), eg. `{"tools": {"html": {"enabled": false}}}`.   |
+| Actions    | Preview                 | Show/Hide Preview button and the device it starts on. A read-only editor always previews.              |
+| Actions    | Captions                | Translatable button captions.                                                                          |
+| Events     | On ready                | Runs when the editor is ready, and again whenever it is recreated.                                     |
+| Events     | On design loaded        | Runs after the design from the attribute has been loaded.                                              |
+| Events     | On change               | Runs after an edit that changed the design, with the HTML and JSON as variables. Writes nothing.       |
+| Merge tags | Merge tags              | Optional list of placeholders offered in the editor (see below).                                       |
+| Images     | Image uploads           | Unlayer storage, own endpoint or disabled. Uploads need a paid Unlayer plan (see Unlayer plans).       |
+
+Display mode, editor version and advanced options are applied when the editor is created; changing them recreates the
+editor. Locale, merge tags and the upload URL are updated in place.
+
+While the widget drives the preview (the Preview button is shown, or the object is read-only), Unlayer's own Preview
+button is turned off so the two cannot disagree. Unlayer reports no event when its preview is closed, and its close
+button can only be hidden on a paid plan (custom CSS); closing the preview there leaves the widget's button on "Hide
+Preview" until it is clicked.
+
+Unlayer previews desktop at 1280px. When the widget opens the desktop preview in a narrower editor, it uses the width
+that fits, so the preview does not scroll sideways; Unlayer's width menu in the preview still offers 1280px.
+
+### Merge Tags
+
+Point the Merge tags data source at a list (eg. a microflow returning non-persistent objects) and set:
+
+-   **Name**: label in the editor's merge tag menu, eg. `$currentObject/Label`
+-   **Value**: text inserted into the design, eg. `'{%' + $currentObject/Name + '%}'` for Mendix email template
+    placeholders
+-   **Sample** (optional): value shown while previewing
+
+Tags are keyed by their value, so a value listed twice is offered once.
+
+### Image Uploads
+
+Uploading images needs an Unlayer paid plan and is not tested by Stoneworx (see Unlayer plans); on the free plan, set
+**Image uploads** to **Disabled**.
+
+With a plan that allows uploads, images are stored by Unlayer by default, outside your application. To keep them in your
+app, set **Image uploads** to **Own endpoint** and set **Upload URL** to an endpoint in your app (eg. a published REST
+service at `rest/emaileditor/v1/images`) that:
+
+-   accepts a `POST` with `multipart/form-data`, the image in a part named `file`
+-   stores it where the email's recipients can reach it (the URL ends up in the email)
+-   responds with JSON: `{"url": "https://your-app/path/to/image.png"}`
+
+When the Upload URL is on the app's own origin (a relative path such as the example above, or the app's own address),
+the Mendix session's CSRF token is sent in the `X-Csrf-Token` header, so the service can use the active session for
+authentication. It is never sent to another host. The returned `url` must be an absolute `http://` or `https://` URL;
+anything else is refused. Choose **Disabled** to hide uploads entirely.
+
+### Security
+
+-   **HTML attribute (stored XSS).** Unlayer's HTML block accepts any markup, including `<script>`, and the exported
+    HTML contains it as is. Never show the HTML attribute in the app (eg. an HTML snippet or viewer) without sanitizing
+    it on the server first. If users who edit templates are not trusted, also turn off the HTML block with the advanced
+    options `{"tools": {"html": {"enabled": false}}}`.
+-   **Embed script URL.** The script runs in your app with the user's session, and its integrity cannot be checked (no
+    Subresource Integrity). Only load it from a host you control. It must be an `https://` URL or a path in the app; any
+    other URL is refused, and Studio Pro warns whenever the property is set.
+-   **Editor version.** `latest` is not pinned: Unlayer can change it at any time. Use an exact version (eg. `1.157.0`)
+    or leave the property empty for Unlayer's stable version.
+
+### Content Security Policy
+
+The editor loads `https://editor.unlayer.com/embed.js` and runs in an iframe from `editor.unlayer.com`. If your app sets
+a Content Security Policy, allow that host in `script-src` and `frame-src`. The widget cannot be used offline.
 
 ### Configuration Screenshots
 
@@ -57,7 +146,7 @@ Build emails and email templates in a friendly and easy manner, using drag and d
 ## Demo Project
 
 -   [Mendix app running on the cloud](https://email-editor-mendix-sandbox.mxapps.io/index.html)
--   [Mendix demo module (.mpk)](https://github.com/StoneworxNL/email-editor-mendix/tree/main/demo) 
+-   [Mendix demo module (.mpk)](https://github.com/StoneworxNL/email-editor-mendix/tree/main/demo)
     <!-- - [Marketplace widget](https://marketplace.mendix.com/link/component/237438) -->
 
 ### Editor Embedded in Mendix Web App
@@ -81,6 +170,58 @@ After creating the template, we can use custom logic to fill in placeholders (if
 For the image below, we used FakeSMTP to receive a test email.
 
 ![Sent Email Example](https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/example.png)
+
+## Upgrading
+
+**From 1.0.x (the Marketplace release):** update the widget in Studio Pro. Existing settings are kept and the new
+properties have defaults.
+
+**From a 1.1.0 – 1.2.1 package built from this repository** (these were never released on the Marketplace): the **Write
+changes to attributes** property is gone. It wrote the design to the attributes in the background so that a page's own
+Save button could store it, which needed the widget to hold back clicks and keys on the whole page to be reliable.
+Studio Pro removes the property when you update the widget. Pages that used it must save through the widget's **Save
+Template** action instead: set Save Template to the microflow or nanoflow that the page's Save button ran (it receives
+the HTML and JSON as variables, and the attributes are written before it runs), and remove or keep the page's own Save
+button for the other fields. On change still runs after edits, but no longer writes the attributes.
+
+## Building a Release
+
+`npm run build` makes a development package: unminified, with inline source maps, and without the third-party license
+notice. Build every package you ship with `npm run release`, which minifies it and adds `dependencies.txt` (the MIT
+notice for react-email-editor) to the `.mpk`.
+
+## Unlayer plans
+
+The editor is Unlayer's hosted service, and what it offers depends on your Unlayer plan. Stoneworx develops and tests
+the widget on the **free plan**, which covers the email, page, pop-up and document builders, device previews, basic
+merge tags and exporting the design and HTML from the editor, which is everything the widget relies on.
+
+Some properties switch on features that Unlayer only offers on paid plans (per
+[Unlayer's pricing](https://unlayer.com/pricing), November 2026). The widget passes them to the editor as Unlayer
+documents them, but **they are not tested by Stoneworx**: check them with your own plan before you rely on them.
+
+| Property or option                                                   | Unlayer paid feature        |
+| -------------------------------------------------------------------- | --------------------------- |
+| Theme other than Modern light                                        | Built-in themes             |
+| Locale, or the app's language when Locale is empty                   | Localization                |
+| Image uploads: Unlayer storage                                       | File manager (user uploads) |
+| Image uploads: own endpoint                                          | Custom storage              |
+| Advanced options for custom CSS or JS, fonts, custom tools and so on | The matching feature        |
+
+On the free plan, choose **Disabled** for Image uploads.
+
+The widget itself uses one paid option: while it drives the preview it adds custom CSS that hides Unlayer's own preview
+close button. On the free plan Unlayer ignores it and the button stays visible (see Properties).
+
+## License and Third-Party Services
+
+The widget is released under the MIT license (see [LICENSE](LICENSE)). The released `.mpk` contains that LICENSE and
+`dependencies.txt`, with the license texts of the bundled packages (react-email-editor and classnames, both MIT).
+
+The editor itself is not bundled: react-email-editor loads Unlayer's hosted editor from `editor.unlayer.com` at runtime.
+Using it means accepting [Unlayer's Terms of Service](https://unlayer.com/terms) and its plans: without a project ID the
+editor runs on Unlayer's free tier, with Unlayer branding, and some options need a paid plan (see Unlayer plans). Check
+your Unlayer plan before using the widget in production.
 
 ## Issues, Suggestions and Feature Requests
 
