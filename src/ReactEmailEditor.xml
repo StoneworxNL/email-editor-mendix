@@ -51,7 +51,10 @@
                 </property>
                 <property key="theme" type="enumeration" defaultValue="modern_light">
                     <caption>Theme</caption>
-                    <description>Appearance of the editor.</description>
+                    <description>
+                        Appearance of the editor. Themes other than Modern light require an Unlayer paid plan and are
+                        not tested by Stoneworx.
+                    </description>
                     <enumerationValues>
                         <enumerationValue key="modern_light">Modern light</enumerationValue>
                         <enumerationValue key="modern_dark">Modern dark</enumerationValue>
@@ -62,8 +65,8 @@
                 <property key="displayMode" type="enumeration" defaultValue="email">
                     <caption>Display mode</caption>
                     <description>
-                        What the editor builds: an email, a web page, a pop-up or a document. Web pages, pop-ups and
-                        documents may need a paid Unlayer plan. A displayMode in the advanced options takes precedence.
+                        What the editor builds: an email, a web page, a pop-up or a document, all in Unlayer's free
+                        plan. A displayMode in the advanced options takes precedence.
                     </description>
                     <enumerationValues>
                         <enumerationValue key="email">Email</enumerationValue>
@@ -75,7 +78,8 @@
                 <property key="locale" type="expression" required="false">
                     <caption>Locale</caption>
                     <description>
-                        Optional. Editor language, for example en-US, nl-NL or pt-PT. Leave empty for English.
+                        Optional. Editor language, for example nl-NL or pt-PT; empty follows the app's language. A
+                        translated editor requires an Unlayer paid plan and is not tested by Stoneworx.
                     </description>
                     <returnType type="String" />
                 </property>
@@ -99,7 +103,9 @@
                     <caption>Advanced options (JSON)</caption>
                     <description>
                         Optional. Extra Unlayer editor options as a JSON object, for example {"tools": {"html":
-                        {"enabled": false}}, "features": {"stockImages": false}}. See https://docs.unlayer.com.
+                        {"enabled": false}}, "features": {"stockImages": false}}. See https://docs.unlayer.com. Options
+                        for paid features (custom CSS or JS, fonts, custom tools and so on) require a matching Unlayer
+                        plan and are not tested by Stoneworx.
                     </description>
                 </property>
             </propertyGroup>
@@ -252,6 +258,8 @@
                     <caption>Image uploads</caption>
                     <description>
                         Where images that users upload are stored. Unlayer's storage is outside this application.
+                        Uploads, to Unlayer storage or your own endpoint, require an Unlayer paid plan and are not
+                        tested by Stoneworx. Choose Disabled on the free plan.
                     </description>
                     <enumerationValues>
                         <enumerationValue key="unlayer">Unlayer storage</enumerationValue>

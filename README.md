@@ -2,8 +2,8 @@
 
 A Mendix Pluggable Widget to build emails and email templates using
 [Unlayer's Editor](https://github.com/unlayer/react-email-editor). This will allow you to quickly build beautiful and
-complex emails, end-user oriented; reuse templates and designs; make sure they look ok in different devices and in
-dark-mode... All embedded in your Mendix application.
+complex emails, end-user oriented; reuse templates and designs; make sure they look ok on different devices. All
+embedded in your Mendix application.
 
 <img alt="Mendix Pluggable Widget Email Editor Logo" src="https://github.com/StoneworxNL/email-editor-mendix/blob/main/images/logo.jpeg" width="65px"/>
 
@@ -17,7 +17,6 @@ Build emails and email templates in a friendly and easy manner, using drag and d
     -   Change settings
 -   Load existing templates
 -   Preview emails (for desktop, tablet and mobile devices, using different resolutions)
-    -   Preview available for dark mode as well
 -   Save Design (JSON with template) and/or save HTML
     -   Mendix action (such as call microflow) possible
     -   You can then easily convert it into Mendix Email Templates
@@ -45,25 +44,25 @@ If the object is read-only, the editor opens in preview mode and the Save Templa
 
 ### Properties
 
-| Group      | Property                | Description                                                                                           |
-| ---------- | ----------------------- | ----------------------------------------------------------------------------------------------------- |
-| Data       | JSON Template           | String attribute holding the design.                                                                  |
-| Data       | HTML                    | Optional. String attribute that receives the exported HTML.                                           |
-| Editor     | Unlayer project ID      | Project ID from the [Unlayer Developer Console](https://dashboard.unlayer.com). Needed in production. |
-| Editor     | Height                  | Minimum height (CSS length). Unlayer recommends at least 1024 × 700 px.                               |
-| Editor     | Theme                   | Modern or classic, light or dark.                                                                     |
-| Editor     | Display mode            | Email, web page, pop-up or document. All but email may need a paid Unlayer plan.                      |
-| Editor     | Locale                  | Optional expression, eg. `'nl-NL'`. Not set: the app's language (English stays English).              |
-| Editor     | Editor version          | Optional Unlayer version, eg. `1.157.0`. `latest` is not pinned (see Security). Empty: stable.        |
-| Editor     | Embed script URL        | Optional location of `embed.js`: an `https://` URL or a path in the app (see Security).               |
-| Editor     | Advanced options (JSON) | Any other [Unlayer option](https://docs.unlayer.com), eg. `{"tools": {"html": {"enabled": false}}}`.  |
-| Actions    | Preview                 | Show/Hide Preview button and the device it starts on. A read-only editor always previews.             |
-| Actions    | Captions                | Translatable button captions.                                                                         |
-| Events     | On ready                | Runs when the editor is ready, and again whenever it is recreated.                                    |
-| Events     | On design loaded        | Runs after the design from the attribute has been loaded.                                             |
-| Events     | On change               | Runs after an edit that changed the design, with the HTML and JSON as variables. Writes nothing.      |
-| Merge tags | Merge tags              | Optional list of placeholders offered in the editor (see below).                                      |
-| Images     | Image uploads           | Unlayer storage, own endpoint or disabled (see below).                                                |
+| Group      | Property                | Description                                                                                            |
+| ---------- | ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| Data       | JSON Template           | String attribute holding the design.                                                                   |
+| Data       | HTML                    | Optional. String attribute that receives the exported HTML.                                            |
+| Editor     | Unlayer project ID      | Project ID from the [Unlayer Developer Console](https://dashboard.unlayer.com). Needed in production.  |
+| Editor     | Height                  | Minimum height (CSS length). Unlayer recommends at least 1024 × 700 px.                                |
+| Editor     | Theme                   | Modern light (default). The other themes need a paid Unlayer plan (see Unlayer plans).                 |
+| Editor     | Display mode            | Email, web page, pop-up or document, all in Unlayer's free plan.                                       |
+| Editor     | Locale                  | Optional expression, eg. `'nl-NL'`. A translated editor needs a paid Unlayer plan (see Unlayer plans). |
+| Editor     | Editor version          | Optional Unlayer version, eg. `1.157.0`. `latest` is not pinned (see Security). Empty: stable.         |
+| Editor     | Embed script URL        | Optional location of `embed.js`: an `https://` URL or a path in the app (see Security).                |
+| Editor     | Advanced options (JSON) | Any other [Unlayer option](https://docs.unlayer.com), eg. `{"tools": {"html": {"enabled": false}}}`.   |
+| Actions    | Preview                 | Show/Hide Preview button and the device it starts on. A read-only editor always previews.              |
+| Actions    | Captions                | Translatable button captions.                                                                          |
+| Events     | On ready                | Runs when the editor is ready, and again whenever it is recreated.                                     |
+| Events     | On design loaded        | Runs after the design from the attribute has been loaded.                                              |
+| Events     | On change               | Runs after an edit that changed the design, with the HTML and JSON as variables. Writes nothing.       |
+| Merge tags | Merge tags              | Optional list of placeholders offered in the editor (see below).                                       |
+| Images     | Image uploads           | Unlayer storage, own endpoint or disabled. Uploads need a paid Unlayer plan (see Unlayer plans).       |
 
 Display mode, editor version and advanced options are applied when the editor is created; changing them recreates the
 editor. Locale, merge tags and the upload URL are updated in place.
@@ -89,9 +88,12 @@ Tags are keyed by their value, so a value listed twice is offered once.
 
 ### Image Uploads
 
-By default, images that users upload are stored by Unlayer, outside your application. To keep them in your app, set
-**Image uploads** to **Own endpoint** and set **Upload URL** to an endpoint in your app (eg. a published REST service at
-`rest/emaileditor/v1/images`) that:
+Uploading images needs an Unlayer paid plan and is not tested by Stoneworx (see Unlayer plans); on the free plan, set
+**Image uploads** to **Disabled**.
+
+With a plan that allows uploads, images are stored by Unlayer by default, outside your application. To keep them in your
+app, set **Image uploads** to **Own endpoint** and set **Upload URL** to an endpoint in your app (eg. a published REST
+service at `rest/emaileditor/v1/images`) that:
 
 -   accepts a `POST` with `multipart/form-data`, the image in a part named `file`
 -   stores it where the email's recipients can reach it (the URL ends up in the email)
@@ -188,6 +190,29 @@ button for the other fields. On change still runs after edits, but no longer wri
 notice. Build every package you ship with `npm run release`, which minifies it and adds `dependencies.txt` (the MIT
 notice for react-email-editor) to the `.mpk`.
 
+## Unlayer plans
+
+The editor is Unlayer's hosted service, and what it offers depends on your Unlayer plan. Stoneworx develops and tests
+the widget on the **free plan**, which covers the email, page, pop-up and document builders, device previews, basic
+merge tags and exporting the design and HTML from the editor, which is everything the widget relies on.
+
+Some properties switch on features that Unlayer only offers on paid plans (per
+[Unlayer's pricing](https://unlayer.com/pricing), November 2026). The widget passes them to the editor as Unlayer
+documents them, but **they are not tested by Stoneworx**: check them with your own plan before you rely on them.
+
+| Property or option                                                   | Unlayer paid feature        |
+| -------------------------------------------------------------------- | --------------------------- |
+| Theme other than Modern light                                        | Built-in themes             |
+| Locale, or the app's language when Locale is empty                   | Localization                |
+| Image uploads: Unlayer storage                                       | File manager (user uploads) |
+| Image uploads: own endpoint                                          | Custom storage              |
+| Advanced options for custom CSS or JS, fonts, custom tools and so on | The matching feature        |
+
+On the free plan, choose **Disabled** for Image uploads.
+
+The widget itself uses one paid option: while it drives the preview it adds custom CSS that hides Unlayer's own preview
+close button. On the free plan Unlayer ignores it and the button stays visible (see Properties).
+
 ## License and Third-Party Services
 
 The widget is released under the MIT license (see [LICENSE](LICENSE)). The released `.mpk` contains that LICENSE and
@@ -195,8 +220,8 @@ The widget is released under the MIT license (see [LICENSE](LICENSE)). The relea
 
 The editor itself is not bundled: react-email-editor loads Unlayer's hosted editor from `editor.unlayer.com` at runtime.
 Using it means accepting [Unlayer's Terms of Service](https://unlayer.com/terms) and its plans: without a project ID the
-editor runs on Unlayer's free tier, with Unlayer branding, and some options (display modes other than email, custom CSS,
-white-labelling, higher usage) need a paid plan. Check your Unlayer plan before using the widget in production.
+editor runs on Unlayer's free tier, with Unlayer branding, and some options need a paid plan (see Unlayer plans). Check
+your Unlayer plan before using the widget in production.
 
 ## Issues, Suggestions and Feature Requests
 
